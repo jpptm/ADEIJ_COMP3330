@@ -1,0 +1,2 @@
+# ADEIJ_COMP3330
+The group project for COMP3330 SEM 1 2023
