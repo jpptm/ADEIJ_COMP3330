@@ -30,6 +30,8 @@ Bird/Herfel/Konijn - 2) Network architecture
 
 Konijn/Montano - 4) Inference
 
+All of us - REPORT MAKING (AAAAAAAAAAAAAAAAAAHHHHHHHHHHHH)
+
 The allocations above are your formal (initial) responsibilities. If you would like to change it around, please don't hesitate to tell me. These are just formalities, you can still work on something your interested in if your allocation does not happen to interest you.
 
 **We are a team, hence we will be helping anyone who needs assistance.**
