@@ -94,7 +94,6 @@ class IntelDataLoader(torch.utils.data.Dataset):
             img = tv.transforms.RandomAffine(
                 degrees=45, translate=(0.1, 0.1), shear=22.5
             )(img)
-            print(True)
 
         # Comment the line/s below if you want to show the augmented images
         # img = img.type(torch.float32) / 255
