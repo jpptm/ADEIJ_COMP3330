@@ -80,7 +80,7 @@ class IntelDataLoader(torch.utils.data.Dataset):
 
         # Read the image and convert it to a tensor
         img = cv2.imread(img_name)
-        img = torch.from_numpy(img)
+        img = torch.from_numpy(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
         # Convert the image to (Channels, H, W) format
         img = img.permute(2, 0, 1)
@@ -108,7 +108,7 @@ class IntelDataLoader(torch.utils.data.Dataset):
 # Uncomment to show the images
 dl = IntelDataLoader("C:/Microsoft VS Code/ADEIJ_datasets/seg_train/seg_train")
 for i in range(100):
-    ci = dl.__get_item__(i)
+    ci = dl.__getitem__(i)
 
     print(f"Label: {dl.known_classes[ci[1].int()]}")
 
