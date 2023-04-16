@@ -74,7 +74,7 @@ class IntelDataLoader(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.master_data)
 
-    def __get_item__(self, idx):
+    def __getitem__(self, idx):
         # Get the image name and label
         img_name, label = self.master_data[idx]
 
