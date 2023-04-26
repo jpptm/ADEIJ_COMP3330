@@ -52,33 +52,34 @@ def inference(model_path, imgs_path, show=False):
             batch_list = []
 
         # Tqdm for progress bar
-        for idx, (img, img_path) in tqdm(
-            enumerate(inference_dataloader),
+        for img, img_path in tqdm(
+            inference_dataloader,
             total=len(inference_dataloader),
             desc="inference",
         ):
 
             predictions = model(img.to(device))
-            writer.writerow([img_path, torch.argmax(predictions).item()])
-            print(img_path)
+            writer.writerow([img_path[0], torch.argmax(predictions).item()])
+
             if show:
                 batch = {"img_name": img_path, "preds": predictions}
                 batch_list.append(batch)
 
                 if len(batch_list) == 32:
                     # Load as images in a subplot
-                    fig, axs = plt.subplots(nrows=8, ncols=4, figsize=(20, 10))
+                    fig, axs = plt.subplots(nrows=8, ncols=4, figsize=(10, 10))
                     for i, batch in enumerate(batch_list):
                         img_name = batch["img_name"]
                         preds = batch["preds"]
 
-                        img = cv2.imread(img_name)
+                        img = cv2.imread(img_name[0])
                         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-                        axs[i // 8, i % 4].imshow(img)
-                        axs[i // 8, i % 4].set_title(
+                        axs[i // 4, i % 4].imshow(img)
+                        axs[i // 4, i % 4].set_title(
                             f"Prediction: {class_map[torch.argmax(preds).item()]}"
                         )
+                        axs[i // 4, i % 4].axis("off")
 
                     # Show images and reset batch list
                     plt.show()
