@@ -12,6 +12,7 @@ from models.cv_model import CVModel
 # Class to load image to a data loader so we can batch our inferences
 class InferenceLoader(torch.utils.data.Dataset):
     def __init__(self, imgs_path):
+        # If file in directory is a .jpg add it to the list
         self.master_list = [
             os.path.join(imgs_path, f)
             for f in os.listdir(imgs_path)
@@ -22,9 +23,16 @@ class InferenceLoader(torch.utils.data.Dataset):
         return len(self.master_list)
 
     def __getitem__(self, idx):
+        # Load image and permute image to (C, H, W) from (H, W, C) after transforming from BGR to RGB
+        # The colour change is because cv2 loads images in the BGR format for some reason
         img_path = self.master_list[idx]
         img = cv2.imread(img_path)
-        img = cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (150, 150))
+        # Make sure no images have the wrong shape
+        img = (
+            cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (150, 150))
+            if img.shape != (150, 150, 3)
+            else cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        )
 
         return torch.tensor(img, dtype=torch.float32).permute(2, 0, 1), img_path
 
@@ -55,7 +63,7 @@ def inference(model_path, imgs_path, show=False):
         for img, img_path in tqdm(
             inference_dataloader,
             total=len(inference_dataloader),
-            desc="inference",
+            desc="Inference",
         ):
 
             predictions = model(img.to(device))
@@ -75,6 +83,7 @@ def inference(model_path, imgs_path, show=False):
                         img = cv2.imread(img_name[0])
                         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
+                        # Use the index to put the images into the correct subplot
                         axs[i // 4, i % 4].imshow(img)
                         axs[i // 4, i % 4].set_title(
                             f"Prediction: {class_map[torch.argmax(preds).item()]}"
@@ -87,15 +96,9 @@ def inference(model_path, imgs_path, show=False):
 
 
 if __name__ == "__main__":
+    # The imgs_path and model_path must be changed if users would like to use it on their own machine (figure out the path to the model and images)
     model_path = f"{os.path.join(os.getcwd(), 'intel_model.pt')}"
     imgs_path = "C:\Microsoft VS Code\ADEIJ_datasets\seg_pred\seg_pred"
-    show = True
+    show = False
 
     inference(model_path=model_path, imgs_path=imgs_path, show=show)
-    # import numpy as np
-
-    # for imgs in os.listdir(imgs_path):
-    #     img = cv2.imread(os.path.join(imgs_path, imgs))
-    #     print(img.shape)
-    #     if img.shape[0] != 150 and img.shape[1] != 150 and img.shape[2] != 3:
-    #         print(os.path.join(imgs_path, imgs))
