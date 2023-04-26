@@ -73,9 +73,9 @@ def inference(model_path, imgs_path, show=False):
                 batch = {"img_name": img_path, "preds": predictions}
                 batch_list.append(batch)
 
-                if len(batch_list) == 32:
+                if len(batch_list) == 64:
                     # Load as images in a subplot
-                    fig, axs = plt.subplots(nrows=8, ncols=4, figsize=(10, 10))
+                    fig, axs = plt.subplots(nrows=8, ncols=8, figsize=(10, 10))
                     for i, batch in enumerate(batch_list):
                         img_name = batch["img_name"]
                         preds = batch["preds"]
@@ -84,11 +84,11 @@ def inference(model_path, imgs_path, show=False):
                         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
                         # Use the index to put the images into the correct subplot
-                        axs[i // 4, i % 4].imshow(img)
-                        axs[i // 4, i % 4].set_title(
+                        axs[i // 8, i % 8].imshow(img)
+                        axs[i // 8, i % 8].set_title(
                             f"Prediction: {class_map[torch.argmax(preds).item()]}"
                         )
-                        axs[i // 4, i % 4].axis("off")
+                        axs[i // 8, i % 8].axis("off")
 
                     # Show images and reset batch list
                     plt.show()
