@@ -105,7 +105,8 @@ class IntelDataLoader(torch.utils.data.Dataset):
 
 
 # Uncomment to show the images
-dl = IntelDataLoader("C:/Microsoft VS Code/ADEIJ_datasets/seg_train/seg_train")
+# dl = IntelDataLoader("C:/Microsoft VS Code/ADEIJ_datasets/seg_train/seg_train")
+dl = IntelDataLoader("C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train")
 for i in range(100):
     ci = dl.__getitem__(i)
 
