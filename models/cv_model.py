@@ -29,5 +29,4 @@ class CVModel(torch.nn.Module):
         self.model = resnet18
 
     def forward(self, x):
-        x = x.type(torch.uint8)
         return self.model(x)

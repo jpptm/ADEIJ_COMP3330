@@ -147,6 +147,7 @@ if __name__ == "__main__":
 
     # Define hyperparameters
     data_paths = {
+		# TODO: make relative
         "train": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train",
         "val": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_test/seg_test",
 		# "train": "C:\Microsoft VS Code\ADEIJ_datasets\seg_train\seg_train",
