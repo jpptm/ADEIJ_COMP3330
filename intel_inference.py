@@ -102,9 +102,7 @@ if __name__ == "__main__":
     model_path = f"{os.path.join(os.getcwd(), 'intel_model.pt')}"
 
     folder_name = "ADEIJ_datasets"
-    imgs_path = (
-        f"{os.path.join(os.getcwd(), '..', folder_name, 'seg_pred', 'seg_pred')}"
-    )
+    imgs_path = os.path.join(os.getcwd(), "..", folder_name, "seg_pred", "seg_pred")
 
     show = False
 
