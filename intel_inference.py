@@ -96,9 +96,16 @@ def inference(model_path, imgs_path, show=False):
 
 
 if __name__ == "__main__":
-    # The imgs_path and model_path must be changed if users would like to use it on their own machine (figure out the path to the model and images)
+    # NOTE The model path is expected to be in the project's root directory
+    # NOTE The image path that contains the test images is expected to be in the before project's root directory
+    # NOTE The file will be written in the project's root directory
     model_path = f"{os.path.join(os.getcwd(), 'intel_model.pt')}"
-    imgs_path = "C:\Microsoft VS Code\ADEIJ_datasets\seg_pred\seg_pred"
+
+    folder_name = "ADEIJ_datasets"
+    imgs_path = (
+        f"{os.path.join(os.getcwd(), '..', folder_name, 'seg_pred', 'seg_pred')}"
+    )
+
     show = False
 
     inference(model_path=model_path, imgs_path=imgs_path, show=show)
