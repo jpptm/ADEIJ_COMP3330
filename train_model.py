@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 
 from intel_dataloader import IntelDataLoader
 
+import metrics
+
 from models.cv_model import CVModel
 
 from tqdm import tqdm
@@ -128,6 +130,9 @@ def main(data_path, lr, num_epochs, batch_size, loss):
 
     torch.save(model.state_dict(), "intel_model.pt")
 
+    # proof of concept for metrics, can add into the inference also
+    metrics.conf_matrix(model, val_loader, device)
+
     # Show loss and accuracy history
     plt.figure()
     plt.plot(train_losses, label="Training loss")
@@ -154,7 +159,7 @@ if __name__ == "__main__":
         # "val": "C:\Microsoft VS Code\ADEIJ_datasets\seg_test\seg_test",
     }
     lr = 0.001
-    num_epochs = 10
+    num_epochs = 1
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
 
