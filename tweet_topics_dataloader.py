@@ -59,16 +59,20 @@ class TweetTopicsDataLoader:
             fn_kwargs={"tokenizer": self.tokenizer, "max_length": 70},
         )
 
-        vocab = torchtext.vocab.build_vocab_from_iterator(
+        self.vocab = torchtext.vocab.build_vocab_from_iterator(
             self.train["tokens"], min_freq=5, specials=["<unk>", "<pad>"]
         )
-        vocab.set_default_index(vocab["<unk>"])
-        self.pad_index = vocab["<pad>"]
+        self.vocab.set_default_index(self.vocab["<unk>"])
+        self.pad_index = self.vocab["<pad>"]
 
         # Numericalise data
-        self.train = self.train.map(self.numericalize_data, fn_kwargs={"vocab": vocab})
-        self.val = self.val.map(self.numericalize_data, fn_kwargs={"vocab": vocab})
-        self.test = self.test.map(self.numericalize_data, fn_kwargs={"vocab": vocab})
+        self.train = self.train.map(
+            self.numericalize_data, fn_kwargs={"vocab": self.vocab}
+        )
+        self.val = self.val.map(self.numericalize_data, fn_kwargs={"vocab": self.vocab})
+        self.test = self.test.map(
+            self.numericalize_data, fn_kwargs={"vocab": self.vocab}
+        )
 
         # Format data
         self.train = self.train.with_format(type="torch", columns=["ids", "label"])
@@ -77,10 +81,29 @@ class TweetTopicsDataLoader:
 
         # Collate data
         self.train = torch.utils.data.DataLoader(
-            self.train, batch_size=batch_size, shuffle=True
+            self.train,
+            batch_size=batch_size,
+            shuffle=True,
+            collate_fn=self.collate,
         )
-        self.val = torch.utils.data.DataLoader(self.val, batch_size=batch_size)
-        self.test = torch.utils.data.DataLoader(self.test, batch_size=batch_size)
+        self.val = torch.utils.data.DataLoader(
+            self.val,
+            batch_size=batch_size,
+            collate_fn=self.collate,
+        )
+        self.test = torch.utils.data.DataLoader(
+            self.test,
+            batch_size=batch_size,
+            collate_fn=self.collate,
+        )
+
+        count = 0
+        for batch in self.val:
+            print(batch["ids"])
+            print(batch["label"])
+            if count == 2:
+                break
+            count += 1
 
     def tokenize_data(self, example, tokenizer, max_length):
         tokens = tokenizer(example["text"][:max_length])
@@ -106,3 +129,6 @@ class TweetTopicsDataLoader:
 if __name__ == "__main__":
     # Debugging
     TweetTopicsDataLoader()
+
+# TODO add extra logic for bag of words and bag of n grams
+# TODO account for transformers too, or make an extra class if it gets too convoluted and yuck
