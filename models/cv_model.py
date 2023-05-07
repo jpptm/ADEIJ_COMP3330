@@ -1,6 +1,6 @@
 import torch
 import torchvision
-from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights
 
 # testing out some models
 # basing them off the:
@@ -37,24 +37,24 @@ from torchvision.models import resnet18, ResNet18_Weights
 
 
 # Model used to test the average pooling
-class CVModel(torch.nn.Module):
-    def __init__(self, num_classes):
-        super(CVModel, self).__init__()
+# class CVModel(torch.nn.Module):
+#     def __init__(self, num_classes):
+#         super(CVModel, self).__init__()
 
-        # the warning says to use 'weights' instead of pretrained. This will assure we have most recent weights
-        resnet18 = torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)
+#         # the warning says to use 'weights' instead of pretrained. This will assure we have most recent weights
+#         resnet18 = torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)
 
-        # Freeze resnet layers
-        for param in resnet18.parameters():
-            param.requires_grad = False
+#         # Freeze resnet layers
+#         for param in resnet18.parameters():
+#             param.requires_grad = False
 
-        # resnet18.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
-        resnet18.fc = torch.nn.Linear(resnet18.fc.in_features, num_classes)
+#         # resnet18.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
+#         resnet18.fc = torch.nn.Linear(resnet18.fc.in_features, num_classes)
 
-        self.model = resnet18
+#         self.model = resnet18
 
-    def forward(self, x):
-        return self.model(x)
+#     def forward(self, x):
+#         return self.model(x)
 
 # class CVModel(torch.nn.Module):
 #     def __init__(self, num_classes):
@@ -83,11 +83,34 @@ class CVModel(torch.nn.Module):
 #     def forward(self, x):
 #         return self.model(x)
 
+class CVModel(torch.nn.Module):
+    def __init__(self, num_classes):
+        super(CVModel, self).__init__()
+
+        resnet50 = torchvision.models.resnet50(weights=ResNet50_Weights.DEFAULT)
+
+        # Freeze resnet layers
+        for param in resnet50.parameters():
+            param.requires_grad = False
+
+		# Replace last fully connected layer with global average pooling layer
+        # Apparently allows input images of different sizes, do we want this?
+        # I was just copying the study
+        resnet50.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
+
+        # Replace last fully connected layer with a new fully connected layer with 256 units and ReLU activation
+        resnet50.fc = torch.nn.Linear(resnet50.fc.in_features, num_classes)
+
+        self.model = resnet50
+
+    def forward(self, x):
+        return self.model(x)
+
 # class CVModel(torch.nn.Module):
 #     def __init__(self, num_classes):
 #         super(CVModel, self).__init__()
 
-#         vgg16 = torchvision.models.vgg16(pretrained=True)
+#         vgg16 = torchvision.models.vgg16(weights=VGG16_Weights.DEFAULT)
 
 #         # Freeze resnet layers
 #         for param in vgg16.parameters():
@@ -99,10 +122,12 @@ class CVModel(torch.nn.Module):
 #         # First stab in the dark:
 #         # "Classification of Alzheimer's Disease using Convolutional Neural Networks and Transfer Learning" by S. K. Sahu et al.
 #         # This paper uses a frozen vgg16 backbone to classify 6 different stages of Alzheimer's disease.
+#         in_features = vgg16.classifier[6].in_features
 
 #         # Replace last fully connected layer with a new fully connected layer with 256 units and ReLU activation
-#         vgg16.fc = torch.nn.Sequential(
-#             torch.nn.Linear(vgg16.fc.in_features, 256),
+#         vgg16.classifier = torch.nn.Sequential(
+#             *list(vgg16.classifier.children())[:-1],  # Keep all layers except the last one
+#             torch.nn.Linear(in_features, 256),
 #             torch.nn.ReLU(),
 #             torch.nn.Linear(256, num_classes)
 #         )
