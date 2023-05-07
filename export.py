@@ -36,7 +36,7 @@ class Export:
         with torch.no_grad():
             for inputs, targets in tqdm(val_loader,
                                         position=1,
-                                        total=len(self.val_loader),
+                                        total=len(val_loader),
                                         leave=False,
                                         desc="Testing "+self.name,
                                         ):
@@ -62,13 +62,13 @@ class Export:
     def lazy_plot(self):
         # Show loss and accuracy history
         plt_loss = plt.figure(1)
-        plt.plot(train_losses, label="Training loss")
-        plt.plot(val_losses, label="Validation loss")
+        plt.plot(self.history.train_losses, label="Training loss")
+        plt.plot(self.history.val_losses, label="Validation loss")
         plt.legend()
 
         plt_acc = plt.figure(2)
-        plt.plot(train_accs, label="Training accuracy")
-        plt.plot(val_accs, label="Validation accuracy")
+        plt.plot(self.history.train_accs, label="Training accuracy")
+        plt.plot(self.history.val_accs, label="Validation accuracy")
         plt.legend()
 
         plt_cm = plt.figure(3)
