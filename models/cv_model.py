@@ -40,6 +40,28 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 # class CVModel(torch.nn.Module):
 #     def __init__(self, num_classes):
 #         super(CVModel, self).__init__()
+# class CVModel(torch.nn.Module):
+#     def __init__(self, num_classes):
+#         super(CVModel, self).__init__()
+
+#         # the warning says to use 'weights' instead of pretrained. This will assure we have most recent weights
+#         resnet18 = torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)
+
+#         # Freeze resnet layers
+#         for param in resnet18.parameters():
+#             param.requires_grad = False
+
+#         # resnet18.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
+#         resnet18.fc = torch.nn.Linear(resnet18.fc.in_features, num_classes)
+
+#         self.model = resnet18
+
+#     def forward(self, x):
+#         return self.model(x)
+
+# class CVModel(torch.nn.Module):
+#     def __init__(self, num_classes):
+#         super(CVModel, self).__init__()
 
 #         # the warning says to use 'weights' instead of pretrained. This will assure we have most recent weights
 #         resnet18 = torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)

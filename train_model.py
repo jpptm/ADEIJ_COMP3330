@@ -4,13 +4,17 @@ from torch.utils.data import DataLoader
 
 from intel_dataloader import IntelDataLoader
 
-import metrics
-
 from models.cv_model import CVModel
 
 from tqdm import tqdm
 
+# local modules
+import metrics
+import export
+
 # Add training function
+
+
 def train(model, train_loader, criterion, optimiser, device):
     # Let model know we are in training mode
     model.train()
@@ -63,13 +67,11 @@ def validate(model, val_loader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for inputs, targets in tqdm(
-            val_loader,
-            position=1,
-            total=len(val_loader),
-            leave=False,
-            desc="Validating",
-        ):
+        for inputs, targets in tqdm(val_loader,
+                                    position=1,
+                                    total=len(val_loader),
+                                    leave=False,
+                                    desc="Validating"):
             # Cast tensors to device
             inputs, targets = inputs.to(device), targets.to(device)
 
@@ -99,7 +101,8 @@ def main(data_path, lr, num_epochs, batch_size, loss):
     val_dataset = IntelDataLoader(data_path["val"])
 
     # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Create model and optimiser
@@ -108,13 +111,15 @@ def main(data_path, lr, num_epochs, batch_size, loss):
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)
 
     # History logging
+    history = export.History()
     train_losses, train_accs = [], []
     val_losses, val_accs = [], []
 
     # Train model
     for epoch in range(1, num_epochs + 1):
         print(f"Epoch {epoch} of {num_epochs}")
-        train_loss, train_acc = train(model, train_loader, loss, optimiser, device)
+        train_loss, train_acc = train(
+            model, train_loader, loss, optimiser, device)
         val_loss, val_acc = validate(model, val_loader, loss, device)
 
         print(
@@ -123,27 +128,10 @@ def main(data_path, lr, num_epochs, batch_size, loss):
         )
 
         # Save history
-        train_losses.append(train_loss)
-        train_accs.append(train_acc)
-        val_losses.append(val_loss)
-        val_accs.append(val_acc)
+        history.append_all(train_loss, train_acc, val_loss, val_acc)
 
-    torch.save(model.state_dict(), "intel_model.pt")
-
-    # proof of concept for metrics, can add into the inference also
-    metrics.conf_matrix(model, val_loader, device)
-
-    # Show loss and accuracy history
-    plt.figure()
-    plt.plot(train_losses, label="Training loss")
-    plt.plot(val_losses, label="Validation loss")
-    plt.legend()
-
-    plt.figure()
-    plt.plot(train_accs, label="Training accuracy")
-    plt.plot(val_accs, label="Validation accuracy")
-    plt.legend()
-    plt.show()
+    # save and export model
+    export.Export(model, device, "placeholder", history, val_loader)
 
 
 if __name__ == "__main__":
@@ -152,11 +140,13 @@ if __name__ == "__main__":
 
     # Define hyperparameters
     data_paths = {
-		# TODO: make relative
-        "train": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train",
-        "val": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_test/seg_test",
-		# "train": "C:\Microsoft VS Code\ADEIJ_datasets\seg_train\seg_train",
+        # TODO: make relative
+        # "train": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train",
+        # "val": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_test/seg_test",
+        # "train": "C:\Microsoft VS Code\ADEIJ_datasets\seg_train\seg_train",
         # "val": "C:\Microsoft VS Code\ADEIJ_datasets\seg_test\seg_test",
+        "train": "./../ADEIJ_datasets/seg_train/seg_train",
+        "val": "./../ADEIJ_datasets/seg_test/seg_test",
     }
     lr = 0.001
     num_epochs = 1

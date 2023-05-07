@@ -6,7 +6,8 @@ import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_confusion_matrix(cm, classes,normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     # normalize
     cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
@@ -20,26 +21,27 @@ def plot_confusion_matrix(cm, classes,normalize=False, title='Confusion matrix',
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
         plt.text(j, i, format(cm[i, j], '.2f'),
-        horizontalalignment="center",
-        color="white" if cm[i, j] > thresh else "black")
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
 
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.tight_layout()
 
 # can use this at the end of train_model
+
+
 def conf_matrix(model, data_loader, device):
     # Get predictions for the test set
     test_preds = []
     test_labels = []
     with torch.no_grad():
-        for inputs, targets in tqdm(
-            data_loader,
-            position=1,
-            total=len(data_loader),
-            leave=False,
-            desc="Testing",
-        ):
+        for inputs, targets in tqdm(data_loader,
+                                    position=1,
+                                    total=len(data_loader),
+                                    leave=False,
+                                    desc="Testing",
+                                    ):
             # Cast tensors to device
             inputs, targets = inputs.to(device), targets.to(device)
 
@@ -56,7 +58,5 @@ def conf_matrix(model, data_loader, device):
 
     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
-    # Plot confusion matrix
-    plt.figure()
-    plot_confusion_matrix(cm, classes=classes)
-    plt.show()
+    # for later plotting
+    return (cm, classes)
