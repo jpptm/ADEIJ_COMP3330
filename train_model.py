@@ -93,8 +93,11 @@ def validate(model, val_loader, criterion, device):
 
 def test(model, val_loader, criterion, device):
     # Let model know we are in evaluation mode
-    test_data = IntelTestLoader()
-    model.eval()
+    test_data = IntelTestLoader(csv_path)
+    test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
+
+    truth = []
+    preds = []
 
     # Keep track of validation loss
     val_loss = 0
@@ -102,11 +105,13 @@ def test(model, val_loader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for inputs, targets in tqdm(val_loader,
-                                    position=1,
-                                    total=len(val_loader),
-                                    leave=False,
-                                    desc="Validating"):
+        for inputs, targets in tqdm(
+            test_loader,
+            position=1,
+            total=-len(test_loader),
+            leave=False,
+            desc="Testing"):
+
             # Cast tensors to device
             inputs, targets = inputs.to(device), targets.to(device)
 
@@ -202,7 +207,7 @@ if __name__ == "__main__":
         "num_epochs": num_epochs,
         "batch_size": batch_size,
         "loss": loss,
-        "hidden_size": 30
+        "hidden_size": 30,
         "name": CVModel30
     }
 
