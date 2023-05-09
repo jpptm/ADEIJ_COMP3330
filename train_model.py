@@ -128,10 +128,12 @@ def test(model, val_loader, criterion, device):
     acc = 100.0 * correct / total
     avg_loss = val_loss / len(val_loader)
 
+    export.Export(model, device, "Placeholder model name", history, val_loader)
+
     return avg_loss, acc
 
 
-def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
+def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     # Set device - GPU if available, else CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO]: USING {str(device).upper()} DEVICE")
@@ -145,7 +147,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Create model and optimiser
-    model = CVModel(num_classes=6, hidden_size=hidden_size).to(device)
+    model = CVModel(num_classes=6, hidden_size=hidden_size, kind=kind).to(device)
 
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)
 
@@ -168,7 +170,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
         # Save history
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
-    metrics.save_model(model)
+    # metrics.save_model(model)
 
     # proof of concept for metrics, can add into the inference also
     metrics.conf_matrix(model, val_loader, device)
@@ -183,7 +185,8 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     plt.plot(train_accs, label="Training accuracy")
     plt.plot(val_accs, label="Validation accuracy")
     plt.legend()
-    plt.show()
+    # plt.show()
+    test(data_path["test"], model, device, loss)
 
 
 if __name__ == "__main__":
@@ -208,7 +211,8 @@ if __name__ == "__main__":
         "batch_size": batch_size,
         "loss": loss,
         "hidden_size": 30,
-        "name": CVModel30
+        "name": f"CVModel30_{i}",
+        "kind": 'resnet50'
     }
 
     # input_map2 = {

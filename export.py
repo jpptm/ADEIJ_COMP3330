@@ -71,28 +71,28 @@ class Export:
         torch.save(self.model.state_dict(), model_path)
 
     # old code, ignore
-    def lazy_plot(self):
-        # Show loss and accuracy history
-        plt_loss = plt.figure(1)
-        plt.plot(self.history.train_losses, label="Training loss")
-        plt.plot(self.history.val_losses, label="Validation loss")
-        plt.legend()
+    # def lazy_plot(self):
+    #     # Show loss and accuracy history
+    #     plt_loss = plt.figure(1)
+    #     plt.plot(self.history.train_losses, label="Training loss")
+    #     plt.plot(self.history.val_losses, label="Validation loss")
+    #     plt.legend()
 
-        plt_acc = plt.figure(2)
-        plt.plot(self.history.train_accs, label="Training accuracy")
-        plt.plot(self.history.val_accs, label="Validation accuracy")
-        plt.legend()
+    #     plt_acc = plt.figure(2)
+    #     plt.plot(self.history.train_accs, label="Training accuracy")
+    #     plt.plot(self.history.val_accs, label="Validation accuracy")
+    #     plt.legend()
 
-        plt_cm = plt.figure(3)
-        # Compute confusion matrix
-        cm = confusion_matrix(self.labels, self.preds)
-        classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
-        metrics.plot_confusion_matrix(cm, classes)
+    #     plt_cm = plt.figure(3)
+    #     # Compute confusion matrix
+    #     cm = confusion_matrix(self.labels, self.preds)
+    #     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
+    #     metrics.plot_confusion_matrix(cm, classes)
 
         # show all figures
-        plt.show()
+        # plt.show()
 
-    def loss_acc_plots(self, save_to_file=False, show_plot=True):
+    def loss_acc_plots(self, save_to_file=False, show_plot=False):
         # Generate plot for loss
         loss_fig, loss_ax = plt.subplots()
         loss_ax.plot(self.history.train_losses, label="Training loss")
@@ -116,7 +116,7 @@ class Export:
             loss_fig.show()
             acc_fig.show()
 
-    def cm_plot(self, cm, classes, save_to_file=False, show_plot=True, cmap=plt.cm.Blues):
+    def cm_plot(self, cm, classes, save_to_file=False, show_plot=False, cmap=plt.cm.Blues):
         # normalise the confusion matrix
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
