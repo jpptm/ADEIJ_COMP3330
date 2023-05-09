@@ -71,7 +71,7 @@ class TweetTopicsDataLoader:
             self.test = self.test.map(
                 self.multi_hot, fn_kwargs={"num_classes": len(self.vocab)}
             )
-            print(len(self.vocab))
+
             # Format data
             self.train = self.train.with_format(
                 type="torch", columns=["multi_hot", "label"]
@@ -89,11 +89,6 @@ class TweetTopicsDataLoader:
             )
             self.val = torch.utils.data.DataLoader(self.val, batch_size=batch_size)
             self.test = torch.utils.data.DataLoader(self.test, batch_size=batch_size)
-
-            for b in self.train:
-                print(b["multi_hot"])
-                print(b["label"])
-                break
 
         else:
             self.train = self.train.with_format(type="torch", columns=["ids", "label"])
@@ -117,11 +112,6 @@ class TweetTopicsDataLoader:
                 batch_size=batch_size,
                 collate_fn=self.collate,
             )
-
-            for b in self.train:
-                print(b["ids"])
-                print(b["label"])
-                break
 
     def tokenize_data(self, example, tokenizer, max_length):
         tokens = tokenizer(example["text"][:max_length])
