@@ -106,15 +106,15 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 #         return self.model(x)
 
 class CVModel(torch.nn.Module):
-    def __init__(self, num_classes, hidden_size=30, type):
+    def __init__(self, num_classes, hidden_size=30, kind):
         super(CVModel, self).__init__()
 
-        if type == 'resnet50':
+        if kind == 'resnet50':
             model = torchvision.models.resnet50(weights = ResNet50_Weights.DEFAULT)
-        elif type == 'resnet18':
+        elif kind == 'resnet18':
             model = torchvision.models.resnet18(weights = ResNet18_Weights.DEFAULT)
         else:
-            raise ValueError(f"Unsupported model type: {type}")
+            raise ValueError(f"Unsupported model kind: {kind}")
 
         # Freeze model layers
         for param in model.parameters():
