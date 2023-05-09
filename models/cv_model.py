@@ -106,25 +106,31 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 #         return self.model(x)
 
 class CVModel(torch.nn.Module):
-    def __init__(self, num_classes, hidden_size):
+    def __init__(self, num_classes, hidden_size=30, type):
         super(CVModel, self).__init__()
 
-        resnet50 = torchvision.models.resnet50(weights=ResNet50_Weights.DEFAULT)
+        if type == 'resnet50':
+            model = torchvision.models.resnet50(pretrained=True)
+            weights = ResNet50_Weights.DEFAULT
+        elif type == 'resnet18':
+            model = torchvision.models.resnet18(pretrained=True)
+            weights = ResNet18_Weights.DEFAULT
+        else:
+            raise ValueError(f"Unsupported model type: {type}")
 
-        # Freeze resnet layers
-        for param in resnet50.parameters():
+        # Freeze model layers
+        for param in model.parameters():
             param.requires_grad = False
 
-        # resnet50.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
-
         # Replace last fully connected layer with a new fully connected layer with 256 units and ReLU activation
-        resnet50.fc = torch.nn.Sequential(
-            torch.nn.Linear(resnet50.fc.in_features, hidden_size),
+        model.fc = torch.nn.Sequential(
+            torch.nn.Linear(model.fc.in_features, hidden_size),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_size, num_classes)
         )
 
-        self.model = resnet50
+        self.model = model
+        self.weights = weights
 
     def forward(self, x):
         return self.model(x)

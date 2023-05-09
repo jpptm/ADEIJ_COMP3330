@@ -91,6 +91,41 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, acc
 
 
+def test(model, val_loader, criterion, device):
+    # Let model know we are in evaluation mode
+    test_data = IntelTestLoader()
+    model.eval()
+
+    # Keep track of validation loss
+    val_loss = 0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for inputs, targets in tqdm(val_loader,
+                                    position=1,
+                                    total=len(val_loader),
+                                    leave=False,
+                                    desc="Validating"):
+            # Cast tensors to device
+            inputs, targets = inputs.to(device), targets.to(device)
+
+            # Calculate model output and loss
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+
+            # Keep track of loss and accuracy
+            val_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+
+    acc = 100.0 * correct / total
+    avg_loss = val_loss / len(val_loader)
+
+    return avg_loss, acc
+
+
 def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     # Set device - GPU if available, else CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -101,8 +136,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     val_dataset = IntelDataLoader(data_path["val"])
 
     # Create data loaders
-    train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Create model and optimiser
@@ -118,8 +152,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     # Train model
     for epoch in range(1, num_epochs + 1):
         print(f"Epoch {epoch} of {num_epochs}")
-        train_loss, train_acc = train(
-            model, train_loader, loss, optimiser, device)
+        train_loss, train_acc = train(model, train_loader, loss, optimiser, device)
         val_loss, val_acc = validate(model, val_loader, loss, device)
 
         print(
@@ -162,15 +195,36 @@ if __name__ == "__main__":
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
 
-    for i in range(1, 6):
-        input_map = {
-            "data_path": data_paths,
-            "lr": lr,
-            "num_epochs": num_epochs,
-            "batch_size": batch_size,
-            "loss": loss,
-            "hidden_size": i*30
-        }
+    # for i in range(1, 6)
+    input_map1 = {
+        "data_path": data_paths,
+        "lr": lr,
+        "num_epochs": num_epochs,
+        "batch_size": batch_size,
+        "loss": loss,
+        "hidden_size": 30
+        "name": CVModel30
+    }
 
-        # Run main function
-        main(**input_map)
+    # input_map2 = {
+    #     "data_path": data_paths,
+    #     "lr": lr,
+    #     "num_epochs": num_epochs,
+    #     "batch_size": batch_size,
+    #     "loss": loss,
+    #     "hidden_size": 30
+    #     "name": CVModel30
+    # }
+
+    # input_map2 = {
+    #     "data_path": data_paths,
+    #     "lr": lr,
+    #     "num_epochs": num_epochs,
+    #     "batch_size": batch_size,
+    #     "loss": loss,
+    #     "hidden_size": 30
+    #     "name": CVModel30
+    # }
+
+    # Run main function
+    main(**input_map1)

@@ -11,8 +11,7 @@ import metrics
 
 
 class Export:
-    intel_classes = ["buildings", "forest",
-                     "glacier", "mountain", "sea", "street"]
+    intel_classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
     preds, labels = None, None
 
     def __init__(self, model, device, name, history, loader=None, base_path='./outputs/'):
@@ -87,8 +86,7 @@ class Export:
         plt_cm = plt.figure(3)
         # Compute confusion matrix
         cm = confusion_matrix(self.labels, self.preds)
-        classes = ["buildings", "forest",
-                   "glacier", "mountain", "sea", "street"]
+        classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
         metrics.plot_confusion_matrix(cm, classes)
 
         # show all figures
