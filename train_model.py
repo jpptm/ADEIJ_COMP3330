@@ -91,7 +91,7 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, acc
 
 
-def test(model, val_loader, criterion, device):
+def test(csv_path, model, device, criterion, history):
     # Let model know we are in evaluation mode
     test_data = IntelTestLoader(csv_path)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
@@ -132,17 +132,17 @@ def test(model, val_loader, criterion, device):
     truth = [item for sublist in truth for item in sublist]
     preds = [item for sublist in preds for item in sublist]
 
-    confusion_mat = confusion_matrix(truth, preds)
-    acc = accuracy_score(truth, preds)
+    # confusion_mat = confusion_matrix(truth, preds)
+    # acc = accuracy_score(truth, preds)
 
-    precision_global = precision_score(truth, preds, average="micro")
-    precision_mean = precision_score(truth, preds, average="macro")
+    # precision_global = precision_score(truth, preds, average="micro")
+    # precision_mean = precision_score(truth, preds, average="macro")
 
-    recall_global = recall_score(truth, preds, average="micro")
-    recall_mean = recall_score(truth, preds, average="macro")
+    # recall_global = recall_score(truth, preds, average="micro")
+    # recall_mean = recall_score(truth, preds, average="macro")
 
-    acc = 100.0 * correct / total
-    avg_loss = val_loss / len(val_loader)
+    # acc = 100.0 * correct / total
+    # avg_loss = val_loss / len(val_loader)
 
     export.Export(model, device, "Placeholder model name", history, val_loader)
 
@@ -202,7 +202,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     plt.plot(val_accs, label="Validation accuracy")
     plt.legend()
     # plt.show()
-    test(data_path["test"], model, device, loss)
+    test(data_path["test"], model, device, loss, history)
 
 
 if __name__ == "__main__":
