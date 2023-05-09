@@ -84,7 +84,7 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 #         return self.model(x)
 
 class CVModel(torch.nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, hidden_size):
         super(CVModel, self).__init__()
 
         resnet50 = torchvision.models.resnet50(weights=ResNet50_Weights.DEFAULT)
@@ -93,13 +93,14 @@ class CVModel(torch.nn.Module):
         for param in resnet50.parameters():
             param.requires_grad = False
 
-		# Replace last fully connected layer with global average pooling layer
-        # Apparently allows input images of different sizes, do we want this?
-        # I was just copying the study
-        resnet50.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
+        # resnet50.avgpool = torch.nn.AdaptiveAvgPool2d((1, 1))
 
         # Replace last fully connected layer with a new fully connected layer with 256 units and ReLU activation
-        resnet50.fc = torch.nn.Linear(resnet50.fc.in_features, num_classes)
+        resnet50.fc = torch.nn.Sequential(
+            torch.nn.Linear(resnet50.fc.in_features, hidden_size),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_size, num_classes)
+        )
 
         self.model = resnet50
 

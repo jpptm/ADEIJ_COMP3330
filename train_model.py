@@ -89,7 +89,7 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, acc
 
 
-def main(data_path, lr, num_epochs, batch_size, loss):
+def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     # Set device - GPU if available, else CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO]: USING {str(device).upper()} DEVICE")
@@ -103,7 +103,7 @@ def main(data_path, lr, num_epochs, batch_size, loss):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Create model and optimiser
-    model = CVModel(num_classes=6).to(device)
+    model = CVModel(num_classes=6, hidden_size=hidden_size).to(device)
 
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)
 
@@ -128,7 +128,7 @@ def main(data_path, lr, num_epochs, batch_size, loss):
         val_losses.append(val_loss)
         val_accs.append(val_acc)
 
-    torch.save(model.state_dict(), "intel_model.pt")
+    metrics.save_model(model)
 
     # proof of concept for metrics, can add into the inference also
     metrics.conf_matrix(model, val_loader, device)
@@ -152,23 +152,23 @@ if __name__ == "__main__":
 
     # Define hyperparameters
     data_paths = {
-		# TODO: make relative
-        "train": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train",
-        "val": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_test/seg_test",
-		# "train": "C:\Microsoft VS Code\ADEIJ_datasets\seg_train\seg_train",
-        # "val": "C:\Microsoft VS Code\ADEIJ_datasets\seg_test\seg_test",
+        "train": "./../ADEIJ_datasets/seg_train/seg_train",
+        "val": "./../ADEIJ_datasets/seg_test/seg_test",
     }
     lr = 0.001
     num_epochs = 1
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
 
-    input_map = {
-        "data_path": data_paths,
-        "lr": lr,
-        "num_epochs": num_epochs,
-        "batch_size": batch_size,
-        "loss": loss,
-    }
-    # Run main function
-    main(**input_map)
+    for i in range(1, 6):
+        input_map = {
+            "data_path": data_paths,
+            "lr": lr,
+            "num_epochs": num_epochs,
+            "batch_size": batch_size,
+            "loss": loss,
+            "hidden_size": i*30
+        }
+
+        # Run main function
+        main(**input_map)

@@ -1,10 +1,34 @@
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import torch
+import os
 from tqdm import tqdm
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
+
+def save_model(model):
+    # Set the directory where you want to save the models
+    save_dir = "models"
+
+    # Set the base filename for the model
+    filename_base = "intel_model"
+
+    # Initialize the model number
+    model_num = 1
+
+    # Set the filename for this model
+    filename = os.path.join(save_dir, f"{filename_base}_{model_num}.pt")
+
+    # Check if a model with this filename already exists
+    while os.path.exists(filename):
+        # If the model exists, increment the model number
+        model_num += 1
+        # Set the filename for the next model
+        filename = os.path.join(save_dir, f"{filename_base}_{model_num}.pt")
+
+    # Save the model's state_dict to the filename
+    torch.save(model.state_dict(), filename)
 
 def plot_confusion_matrix(cm, classes,normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
     # normalize
