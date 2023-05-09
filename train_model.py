@@ -144,7 +144,7 @@ def test(csv_path, model, device, criterion, history):
     # acc = 100.0 * correct / total
     # avg_loss = val_loss / len(val_loader)
 
-    export.Export(model, device, "Placeholder model name", history, val_loader)
+    export.Export(model, device, "Placeholder model name", history, test_loader)
 
     return avg_loss, acc
 
@@ -213,6 +213,7 @@ if __name__ == "__main__":
     data_paths = {
         "train": "./../ADEIJ_datasets/seg_train/seg_train",
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
+        "test": "./../ADEIJ_datasets/seg_pred/seg_pred"
     }
     lr = 0.001
     num_epochs = 1
