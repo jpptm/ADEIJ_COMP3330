@@ -1,23 +1,23 @@
-import os
-import pickle
-
 import datasets
+import numpy as np
 import torch
 import torchtext
-from tqdm import tqdm
 
 
 class TweetTopicsDataLoader:
 
     """
     Data loader for q2 - tweet topics
+    Can account for BoW, LSTMs and transformers
 
     Returns:
     TweetTopicsDataLoader instance
 
     """
 
-    def __init__(self, splits=["train_coling2022", "test_coling2022"], batch_size=32):
+    def __init__(
+        self, splits=["train_coling2022", "test_coling2022"], batch_size=32, BoW=False
+    ):
         self.splits = splits
         dataset = "cardiffnlp/tweet_topic_single"
 
@@ -30,21 +30,7 @@ class TweetTopicsDataLoader:
         self.train = self.train_val["train"]
         self.val = self.train_val["test"]
 
-        # print(self.train.features)
-        # print(self.train[0])
-
-        # Find max length of the tweets
-        # lens = []
-        # for tweet in tqdm(self.train_all, desc="Finding max tweet length"):
-        #     print(tweet)
-        #     input()
-        #     current_tweet = tweet["text"].split(" ")
-        #     print(current_tweet)
-        #     lens.append(len(current_tweet))
-        # print(max(lens))
-        # Max length is 69 apparently
-
-        # Tokenise all data
+        # Tokenise all data - data max length found to be 69 so we'll use 70
         self.tokenizer = torchtext.data.utils.get_tokenizer("basic_english")
         self.train = self.train.map(
             function=self.tokenize_data,
@@ -74,36 +60,68 @@ class TweetTopicsDataLoader:
             self.numericalize_data, fn_kwargs={"vocab": self.vocab}
         )
 
-        # Format data
-        self.train = self.train.with_format(type="torch", columns=["ids", "label"])
-        self.val = self.val.with_format(type="torch", columns=["ids", "label"])
-        self.test = self.test.with_format(type="torch", columns=["ids", "label"])
+        if BoW:
+            # Multi hot encode data
+            self.train = self.train.map(
+                self.multi_hot, fn_kwargs={"num_classes": len(self.vocab)}
+            )
+            self.val = self.val.map(
+                self.multi_hot, fn_kwargs={"num_classes": len(self.vocab)}
+            )
+            self.test = self.test.map(
+                self.multi_hot, fn_kwargs={"num_classes": len(self.vocab)}
+            )
+            print(len(self.vocab))
+            # Format data
+            self.train = self.train.with_format(
+                type="torch", columns=["multi_hot", "label"]
+            )
+            self.val = self.val.with_format(
+                type="torch", columns=["multi_hot", "label"]
+            )
+            self.test = self.test.with_format(
+                type="torch", columns=["multi_hot", "label"]
+            )
 
-        # Collate data
-        self.train = torch.utils.data.DataLoader(
-            self.train,
-            batch_size=batch_size,
-            shuffle=True,
-            collate_fn=self.collate,
-        )
-        self.val = torch.utils.data.DataLoader(
-            self.val,
-            batch_size=batch_size,
-            collate_fn=self.collate,
-        )
-        self.test = torch.utils.data.DataLoader(
-            self.test,
-            batch_size=batch_size,
-            collate_fn=self.collate,
-        )
+            # Chuck BoW ready data to DataLoader
+            self.train = torch.utils.data.DataLoader(
+                self.train, batch_size=batch_size, shuffle=True
+            )
+            self.val = torch.utils.data.DataLoader(self.val, batch_size=batch_size)
+            self.test = torch.utils.data.DataLoader(self.test, batch_size=batch_size)
 
-        count = 0
-        for batch in self.val:
-            print(batch["ids"])
-            print(batch["label"])
-            if count == 2:
+            for b in self.train:
+                print(b["multi_hot"])
+                print(b["label"])
                 break
-            count += 1
+
+        else:
+            self.train = self.train.with_format(type="torch", columns=["ids", "label"])
+            self.val = self.val.with_format(type="torch", columns=["ids", "label"])
+            self.test = self.test.with_format(type="torch", columns=["ids", "label"])
+
+            # Collate data
+            self.train = torch.utils.data.DataLoader(
+                self.train,
+                batch_size=batch_size,
+                shuffle=True,
+                collate_fn=self.collate,
+            )
+            self.val = torch.utils.data.DataLoader(
+                self.val,
+                batch_size=batch_size,
+                collate_fn=self.collate,
+            )
+            self.test = torch.utils.data.DataLoader(
+                self.test,
+                batch_size=batch_size,
+                collate_fn=self.collate,
+            )
+
+            for b in self.train:
+                print(b["ids"])
+                print(b["label"])
+                break
 
     def tokenize_data(self, example, tokenizer, max_length):
         tokens = tokenizer(example["text"][:max_length])
@@ -125,10 +143,12 @@ class TweetTopicsDataLoader:
 
         return batch
 
+    def multi_hot(self, example, num_classes):
+        encoded = np.zeros((num_classes,))
+        encoded[example["ids"]] = 1
+        return {"multi_hot": encoded}
+
 
 if __name__ == "__main__":
     # Debugging
-    TweetTopicsDataLoader()
-
-# TODO add extra logic for bag of words and bag of n grams
-# TODO account for transformers too, or make an extra class if it gets too convoluted and yuck
+    TweetTopicsDataLoader(BoW=True)
