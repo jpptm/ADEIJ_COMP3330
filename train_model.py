@@ -110,7 +110,8 @@ def test(model, val_loader, criterion, device):
             position=1,
             total=-len(test_loader),
             leave=False,
-            desc="Testing"):
+            desc="Testing"
+            ):
 
             # Cast tensors to device
             inputs, targets = inputs.to(device), targets.to(device)
@@ -124,6 +125,21 @@ def test(model, val_loader, criterion, device):
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
+
+            truth.append(targets.cpu().numpy().flatten())
+            preds.append(predicted.cpu().numpy().flatten())
+
+    truth = [item for sublist in truth for item in sublist]
+    preds = [item for sublist in preds for item in sublist]
+
+    confusion_mat = confusion_matrix(truth, preds)
+    acc = accuracy_score(truth, preds)
+
+    precision_global = precision_score(truth, preds, average="micro")
+    precision_mean = precision_score(truth, preds, average="macro")
+
+    recall_global = recall_score(truth, preds, average="micro")
+    recall_mean = recall_score(truth, preds, average="macro")
 
     acc = 100.0 * correct / total
     avg_loss = val_loss / len(val_loader)
