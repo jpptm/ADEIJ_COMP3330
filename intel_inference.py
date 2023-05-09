@@ -47,7 +47,8 @@ def inference(model_path, imgs_path, show=False):
 
     # Load data
     inference_data = InferenceLoader(imgs_path)
-    inference_dataloader = torch.utils.data.DataLoader(inference_data, shuffle=False)
+    inference_dataloader = torch.utils.data.DataLoader(
+        inference_data, shuffle=False)
 
     # Load known classes
     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
@@ -67,7 +68,7 @@ def inference(model_path, imgs_path, show=False):
         ):
 
             predictions = model(img.to(device))
-            writer.writerow([img_path[0], torch.argmax(predictions).item()])
+            writer.writerow([img_path[0], predictions.item()])
 
             if show:
                 batch = {"img_name": img_path, "preds": predictions}
@@ -102,7 +103,8 @@ if __name__ == "__main__":
     model_path = f"{os.path.join(os.getcwd(), 'intel_model.pt')}"
 
     folder_name = "ADEIJ_datasets"
-    imgs_path = os.path.join(os.getcwd(), "..", folder_name, "seg_pred", "seg_pred")
+    imgs_path = os.path.join(
+        os.getcwd(), "..", folder_name, "seg_pred", "seg_pred")
 
     show = False
 
