@@ -203,17 +203,17 @@ if __name__ == "__main__":
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
 
-    # for i in range(1, 6)
-    input_map1 = {
-        "data_path": data_paths,
-        "lr": lr,
-        "num_epochs": num_epochs,
-        "batch_size": batch_size,
-        "loss": loss,
-        "hidden_size": 30,
-        "name": f"CVModel30_{i}",
-        "kind": 'resnet50'
-    }
+    for i in range(1):
+        input_map1 = {
+            "data_path": data_paths,
+            "lr": lr,
+            "num_epochs": num_epochs,
+            "batch_size": batch_size,
+            "loss": loss,
+            "hidden_size": 30,
+            "name": f"CVModel30_{i}",
+            "kind": 'resnet50'
+        }
 
     # input_map2 = {
     #     "data_path": data_paths,

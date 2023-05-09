@@ -106,7 +106,7 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 #         return self.model(x)
 
 class CVModel(torch.nn.Module):
-    def __init__(self, num_classes, hidden_size=30, kind):
+    def __init__(self, num_classes, kind, hidden_size):
         super(CVModel, self).__init__()
 
         if kind == 'resnet50':
@@ -128,7 +128,7 @@ class CVModel(torch.nn.Module):
         )
 
         self.model = model
-        self.weights = weights
+        # self.weights = weights
 
     def forward(self, x):
         return self.model(x)
