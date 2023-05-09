@@ -3,13 +3,19 @@ import torch
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
+import itertools
+import numpy as np
 
 # local modules
 import metrics
 
 
 class Export:
-    def __init__(self, model, device, name, history, val_loader=None, base_path='./outputs/'):
+    intel_classes = ["buildings", "forest",
+                     "glacier", "mountain", "sea", "street"]
+    preds, labels = None, None
+
+    def __init__(self, model, device, name, history, loader=None, base_path='./outputs/'):
         self.model = model
         self.device = device
         self.name = name
@@ -22,21 +28,28 @@ class Export:
         # If the directory already exists then nothing will happen
         os.makedirs(self.path, exist_ok=True)
 
-        # predictions for the validation set if a loader was provided
-        if val_loader is not None:
-            self.val_preds, self.val_labels = self.predict(val_loader)
+        # guess what this one does
+        self.save_model_to_disk()
 
-        # just do the plots for now
-        self.lazy_plot()
+        # make predictions if a loader was passed
+        if loader is not None:
+            self.preds, self.labels = self.predict(loader)
 
-    # make predictions on the test set
-    def predict(self, val_loader):
+        # basic plots
+        self.loss_acc_plots(save_to_file=True)
+        if self.preds is not None and self.labels is not None:
+            self.cm_plot(confusion_matrix(self.preds, self.labels),
+                         self.intel_classes,
+                         save_to_file=True)
+
+    # make predictions based on given dataloader
+    def predict(self, loader):
         preds = []
         labels = []
         with torch.no_grad():
-            for inputs, targets in tqdm(val_loader,
+            for inputs, targets in tqdm(loader,
                                         position=1,
-                                        total=len(val_loader),
+                                        total=len(loader),
                                         leave=False,
                                         desc="Testing "+self.name,
                                         ):
@@ -58,7 +71,7 @@ class Export:
         model_path = self.path + self.name + '_model.pt'
         torch.save(self.model.state_dict(), model_path)
 
-    # copied directly over
+    # old code, ignore
     def lazy_plot(self):
         # Show loss and accuracy history
         plt_loss = plt.figure(1)
@@ -73,13 +86,72 @@ class Export:
 
         plt_cm = plt.figure(3)
         # Compute confusion matrix
-        cm = confusion_matrix(self.val_labels, self.val_preds)
+        cm = confusion_matrix(self.labels, self.preds)
         classes = ["buildings", "forest",
                    "glacier", "mountain", "sea", "street"]
         metrics.plot_confusion_matrix(cm, classes)
 
         # show all figures
         plt.show()
+
+    def loss_acc_plots(self, save_to_file=False, show_plot=True):
+        # Generate plot for loss
+        loss_fig, loss_ax = plt.subplots()
+        loss_ax.plot(self.history.train_losses, label="Training loss")
+        loss_ax.plot(self.history.val_losses, label="Validation loss")
+        loss_ax.legend()
+
+        # Generate plot for accuracy
+        acc_fig, acc_ax = plt.subplots()
+        acc_ax.plot(self.history.train_accs, label="Training accuracy")
+        acc_ax.plot(self.history.val_accs, label="Validation accuracy")
+        acc_ax.legend()
+
+        # Save the plots if needed
+        if save_to_file:
+            # bbox_inches cuts whitespace
+            loss_fig.savefig(self.path + 'loss.png', bbox_inches='tight')
+            acc_fig.savefig(self.path + 'accuracy.png', bbox_inches='tight')
+
+        # and show them if needed
+        if show_plot:
+            loss_fig.show()
+            acc_fig.show()
+
+    def cm_plot(self, cm, classes, save_to_file=False, show_plot=True, cmap=plt.cm.Blues):
+        # normalise the confusion matrix
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+        # generate axis
+        fig, ax = plt.subplots()
+
+        # display matrix as an image
+        cm_im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+        fig.colorbar(cm_im, ax=ax)
+
+        # put classes on the axes
+        tick_marks = np.arange(len(classes))
+        ax.set_xticks(tick_marks, classes, rotation=45)
+        ax.set_yticks(tick_marks, classes)
+
+        # add text with correct colour
+        threshold = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            plt.text(j, i, format(cm[i, j], '.2f'),
+                     horizontalalignment="center",
+                     color="white" if cm[i, j] > threshold else "black")
+
+        # Add labels and title
+        ax.set_title('Confusion matrix')
+        ax.set_ylabel('True label')
+        ax.set_xlabel('Predicted label')
+        fig.tight_layout()
+
+        # save and show the image according to passed parameters
+        if save_to_file:
+            fig.savefig(self.path + 'matrix.png', bbox_inches='tight')
+        if show_plot:
+            fig.show()
 
 
 class History:  # Standard format for model history

@@ -131,7 +131,9 @@ def main(data_path, lr, num_epochs, batch_size, loss):
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
     # save and export model
-    export.Export(model, device, "placeholder", history, val_loader)
+    # we should really be passing the test dataloader not the validation
+    # dataloader but I'm not sure how to get that from the inference script yet
+    export.Export(model, device, "Placeholder model name", history, val_loader)
 
 
 if __name__ == "__main__":
