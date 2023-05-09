@@ -4,13 +4,17 @@ from torch.utils.data import DataLoader
 
 from intel_dataloader import IntelDataLoader
 
-import metrics
-
 from models.cv_model import CVModel
 
 from tqdm import tqdm
 
+# local modules
+import metrics
+import export
+
 # Add training function
+
+
 def train(model, train_loader, criterion, optimiser, device):
     # Let model know we are in training mode
     model.train()
@@ -63,13 +67,11 @@ def validate(model, val_loader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for inputs, targets in tqdm(
-            val_loader,
-            position=1,
-            total=len(val_loader),
-            leave=False,
-            desc="Validating",
-        ):
+        for inputs, targets in tqdm(val_loader,
+                                    position=1,
+                                    total=len(val_loader),
+                                    leave=False,
+                                    desc="Validating"):
             # Cast tensors to device
             inputs, targets = inputs.to(device), targets.to(device)
 
@@ -99,7 +101,8 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     val_dataset = IntelDataLoader(data_path["val"])
 
     # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Create model and optimiser
@@ -108,13 +111,15 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)
 
     # History logging
+    history = export.History()
     train_losses, train_accs = [], []
     val_losses, val_accs = [], []
 
     # Train model
     for epoch in range(1, num_epochs + 1):
         print(f"Epoch {epoch} of {num_epochs}")
-        train_loss, train_acc = train(model, train_loader, loss, optimiser, device)
+        train_loss, train_acc = train(
+            model, train_loader, loss, optimiser, device)
         val_loss, val_acc = validate(model, val_loader, loss, device)
 
         print(
@@ -123,10 +128,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size):
         )
 
         # Save history
-        train_losses.append(train_loss)
-        train_accs.append(train_acc)
-        val_losses.append(val_loss)
-        val_accs.append(val_acc)
+        history.append_all(train_loss, train_acc, val_loss, val_acc)
 
     metrics.save_model(model)
 
