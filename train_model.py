@@ -123,6 +123,8 @@ def test(model, val_loader, criterion, device):
     acc = 100.0 * correct / total
     avg_loss = val_loss / len(val_loader)
 
+    export.Export(model, device, "Placeholder model name", history, val_loader)
+
     return avg_loss, acc
 
 
@@ -203,7 +205,7 @@ if __name__ == "__main__":
         "batch_size": batch_size,
         "loss": loss,
         "hidden_size": 30
-        "name": CVModel30
+        "name": f"CVModel30_{i}"
     }
 
     # input_map2 = {

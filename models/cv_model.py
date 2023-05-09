@@ -110,11 +110,9 @@ class CVModel(torch.nn.Module):
         super(CVModel, self).__init__()
 
         if type == 'resnet50':
-            model = torchvision.models.resnet50(pretrained=True)
-            weights = ResNet50_Weights.DEFAULT
+            model = torchvision.models.resnet50(weights = ResNet50_Weights.DEFAULT)
         elif type == 'resnet18':
-            model = torchvision.models.resnet18(pretrained=True)
-            weights = ResNet18_Weights.DEFAULT
+            model = torchvision.models.resnet18(weights = ResNet18_Weights.DEFAULT)
         else:
             raise ValueError(f"Unsupported model type: {type}")
 
