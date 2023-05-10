@@ -215,7 +215,7 @@ if __name__ == "__main__":
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
     lr = 0.001
-    num_epochs = 1
+    num_epochs = 10
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
     kind = 'resnet50'
