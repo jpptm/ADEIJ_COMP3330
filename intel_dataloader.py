@@ -105,6 +105,41 @@ class IntelDataLoader(torch.utils.data.Dataset):
 
         return img, label
 
+# Test loader for the inference after training
+class IntelTestLoader(torch.utils.data.Dataset):
+    def __init__(self, csv_path):
+        with open(csv_path, "r") as f:
+            reader = csv.reader(f)
+
+            self.master_data = [(item[0], int(item[2])) for item in reader]
+
+    def __len__(self):
+        return len(self.master_data)
+
+    def __getitem__(self, idx):
+        # Get the image name and label
+        img_name, label = self.master_data[idx]
+
+        # Read the image and convert it to a tensor
+        img = cv2.imread(
+            os.path.join(
+                os.getcwd(), "..", "ADEIJ_datasets", "seg_pred", "seg_pred", img_name
+            )
+        )
+        img = cv2.resize(img, (150, 150)) if img.shape != (150, 150, 3) else img
+        img = torch.from_numpy(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+
+        # Convert the image to (Channels, H, W) format
+        img = img.permute(2, 0, 1)
+
+        # Comment the line/s below if you want to show the augmented images
+        img = img.type(torch.float32) / 255.0
+
+        # Convert the label to a tensor
+        label = torch.tensor(label, dtype=torch.int64)
+
+        return img, label
+
 
 # Test loader for the inference after training
 class IntelTestLoader(torch.utils.data.Dataset):
