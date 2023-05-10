@@ -141,10 +141,10 @@ def test(csv_path, model, device, criterion, history, name):
     # recall_global = recall_score(truth, preds, average="micro")
     # recall_mean = recall_score(truth, preds, average="macro")
 
-    # acc = 100.0 * correct / total
+    acc = 100.0 * correct / total
     # avg_loss = val_loss / len(val_loader)
 
-    export.Export(model, device, name, history, test_loader)
+    export.Export(model, device, name, history, acc, test_loader)
 
 
 def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     num_epochs = 10
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
-    kind = 'resnet50'
+    kind = 'resnet18'
 
     for i in range(1, 16):
         hidden_size = i * 10

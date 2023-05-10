@@ -14,7 +14,7 @@ class Export:
     intel_classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
     preds, labels = None, None
 
-    def __init__(self, model, device, name, history, loader=None, base_path='./outputs/'):
+    def __init__(self, model, device, name, history, acc, loader=None, base_path='./outputs/'):
         self.model = model
         self.device = device
         self.name = name
@@ -30,7 +30,7 @@ class Export:
         # guess what this one does
         self.save_model_to_disk()
 
-        self.save_stats()
+        self.save_stats(acc)
 
         # make predictions if a loader was passed
         if loader is not None:
@@ -71,13 +71,14 @@ class Export:
         torch.save(self.model.state_dict(), model_path)
 
     # save the final tran loss and accuracy and stuff and things
-    def save_stats(self):
+    def save_stats(self, acc):
         try:
             stats_path = self.path + self.name + '_stats.txt'
             with open(stats_path, 'a') as f:
                 f.write(
                     f"Train Loss = {self.history.train_losses[-1]:.4f}, Train Acc = {self.history.train_accs[-1]:.2f}%, "
-                    f"Val Loss = {self.history.val_losses[-1]:.4f}, Val Acc = {self.history.val_accs[-1]:.2f}%\n")
+                    f"Val Loss = {self.history.val_losses[-1]:.4f}, Val Acc = {self.history.val_accs[-1]:.2f}%\n, "
+                    f"Final Test Accuracy = {acc}%\n")
         except Exception as e:
             print(f"Error saving stats to file: {str(e)}")
 
