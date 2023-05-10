@@ -11,6 +11,7 @@ from tqdm import tqdm
 # local modules
 import metrics
 import export
+import pdb
 
 # Add training function
 
@@ -146,8 +147,6 @@ def test(csv_path, model, device, criterion, history):
 
     export.Export(model, device, "Placeholder model name", history, test_loader)
 
-    return avg_loss, acc
-
 
 def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     # Set device - GPU if available, else CPU
@@ -219,28 +218,23 @@ if __name__ == "__main__":
     num_epochs = 1
     batch_size = 32
     loss = torch.nn.CrossEntropyLoss()
+    kind = 'resnet50'
 
-    for i in range(1):
-        input_map1 = {
+    for i in range(1, 6):
+        hidden_size = i * 30
+        input_map = {
             "data_path": data_paths,
             "lr": lr,
             "num_epochs": num_epochs,
             "batch_size": batch_size,
             "loss": loss,
-            "hidden_size": 30,
-            "name": f"CVModel30_{i}",
-            "kind": 'resnet50'
+            "hidden_size": hidden_size,
+            "name": f"{kind}_{hidden_size}",
+            "kind": kind
         }
 
-    # input_map2 = {
-    #     "data_path": data_paths,
-    #     "lr": lr,
-    #     "num_epochs": num_epochs,
-    #     "batch_size": batch_size,
-    #     "loss": loss,
-    #     "hidden_size": 30
-    #     "name": CVModel30
-    # }
+        # Run main function
+        main(**input_map)
 
     # input_map2 = {
     #     "data_path": data_paths,
@@ -252,5 +246,12 @@ if __name__ == "__main__":
     #     "name": CVModel30
     # }
 
-    # Run main function
-    main(**input_map1)
+    # input_map2 = {
+    #     "data_path": data_paths,
+    #     "lr": lr,
+    #     "num_epochs": num_epochs,
+    #     "batch_size": batch_size,
+    #     "loss": loss,
+    #     "hidden_size": 30
+    #     "name": CVModel30
+    # }

@@ -4,11 +4,12 @@
 # mock_test - labelled test set with 12 images
 
 import os
-
 import cv2
 import numpy as np
 import torch
 import torchvision as tv
+import csv
+import pdb
 
 
 # Assumes that the given path contains all the folders with all the data inside it
