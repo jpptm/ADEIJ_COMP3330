@@ -13,9 +13,8 @@ import metrics
 import export
 import pdb
 
+
 # Add training function
-
-
 def train(model, train_loader, criterion, optimiser, device):
     # Let model know we are in training mode
     model.train()
@@ -221,8 +220,8 @@ if __name__ == "__main__":
     loss = torch.nn.CrossEntropyLoss()
     kind = 'resnet50'
 
-    for i in range(1, 6):
-        hidden_size = i * 30
+    for i in range(1, 16):
+        hidden_size = i * 10
         input_map = {
             "data_path": data_paths,
             "lr": lr,
