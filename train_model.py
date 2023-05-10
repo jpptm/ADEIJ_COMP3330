@@ -93,7 +93,7 @@ def validate(model, val_loader, criterion, device):
 
 
 def test(csv_path, model, device, criterion, history):
-    
+
     test_data = IntelTestLoader(csv_path)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 
@@ -210,8 +210,8 @@ if __name__ == "__main__":
 
     # Define hyperparameters
     data_paths = {
-        # "train": "./../ADEIJ_datasets/seg_train/seg_train",
-        "train": "./../ADEIJ_datasets/pretend_train",
+        "train": "./../ADEIJ_datasets/seg_train/seg_train",
+        # "train": "./../ADEIJ_datasets/pretend_train",
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
