@@ -92,7 +92,7 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, acc
 
 
-def test(csv_path, model, device, criterion, history):
+def test(csv_path, model, device, criterion, history, name):
 
     test_data = IntelTestLoader(csv_path)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
@@ -145,7 +145,7 @@ def test(csv_path, model, device, criterion, history):
     # acc = 100.0 * correct / total
     # avg_loss = val_loss / len(val_loader)
 
-    export.Export(model, device, "Placeholder model name", history, test_loader)
+    export.Export(model, device, name, history, test_loader)
 
 
 def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
@@ -201,7 +201,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     plt.plot(val_accs, label="Validation accuracy")
     plt.legend()
     # plt.show()
-    test(data_path["test_csv"], model, device, loss, history)
+    test(data_path["test_csv"], model, device, loss, history, name)
 
 
 if __name__ == "__main__":
