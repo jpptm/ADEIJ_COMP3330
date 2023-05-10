@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 
-from intel_dataloader import IntelDataLoader
+from intel_dataloader import IntelDataLoader, IntelTestLoader
 
 from models.cv_model import CVModel
 
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     data_paths = {
         "train": "./../ADEIJ_datasets/seg_train/seg_train",
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
-        "test": "./../ADEIJ_datasets/seg_pred/seg_pred"
+        "test": "./seg_pred_labels.csv"
     }
     lr = 0.001
     num_epochs = 1
