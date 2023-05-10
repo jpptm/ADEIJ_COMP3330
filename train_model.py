@@ -92,7 +92,7 @@ def validate(model, val_loader, criterion, device):
 
 
 def test(csv_path, model, device, criterion, history):
-    # Let model know we are in evaluation mode
+    
     test_data = IntelTestLoader(csv_path)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
 
@@ -145,8 +145,6 @@ def test(csv_path, model, device, criterion, history):
     # avg_loss = val_loss / len(val_loader)
 
     export.Export(model, device, "Placeholder model name", history, test_loader)
-
-    return avg_loss, acc
 
 
 def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
@@ -202,7 +200,7 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     plt.plot(val_accs, label="Validation accuracy")
     plt.legend()
     # plt.show()
-    test(data_path["test"], model, device, loss, history)
+    test(data_path["test_csv"], model, device, loss, history)
 
 
 if __name__ == "__main__":
@@ -211,9 +209,10 @@ if __name__ == "__main__":
 
     # Define hyperparameters
     data_paths = {
-        "train": "./../ADEIJ_datasets/seg_train/seg_train",
+        # "train": "./../ADEIJ_datasets/seg_train/seg_train",
+        "train": "./../ADEIJ_datasets/pretend_train",
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
-        "test": "./seg_pred_labels.csv"
+        "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
     lr = 0.001
     num_epochs = 1
