@@ -8,6 +8,8 @@ from models.cv_model import CVModel
 
 from tqdm import tqdm
 
+import math
+
 # local modules
 import metrics
 import export
@@ -190,15 +192,15 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     metrics.conf_matrix(model, val_loader, device)
 
     # Show loss and accuracy history
-    plt.figure()
-    plt.plot(train_losses, label="Training loss")
-    plt.plot(val_losses, label="Validation loss")
-    plt.legend()
+    # plt.figure()
+    # plt.plot(train_losses, label="Training loss")
+    # plt.plot(val_losses, label="Validation loss")
+    # plt.legend()
 
-    plt.figure()
-    plt.plot(train_accs, label="Training accuracy")
-    plt.plot(val_accs, label="Validation accuracy")
-    plt.legend()
+    # plt.figure()
+    # plt.plot(train_accs, label="Training accuracy")
+    # plt.plot(val_accs, label="Validation accuracy")
+    # plt.legend()
     # plt.show()
     test(data_path["test_csv"], model, device, loss, history, name)
 
@@ -215,13 +217,15 @@ if __name__ == "__main__":
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
     lr = 0.001
-    num_epochs = 10
-    batch_size = 32
+    num_epochs = 50
+    batch_size = 55
     loss = torch.nn.CrossEntropyLoss()
-    kind = 'resnet18'
+    kind = 'efficientnet'
 
-    for i in range(1, 16):
-        hidden_size = i * 10
+    for i in range(10, 20):
+        hidden_size = math.ceil(i / 2) * 100
+        num_epochs = 50 if num_epochs == 30 else 30
+
         input_map = {
             "data_path": data_paths,
             "lr": lr,
@@ -229,7 +233,7 @@ if __name__ == "__main__":
             "batch_size": batch_size,
             "loss": loss,
             "hidden_size": hidden_size,
-            "name": f"{kind}_{hidden_size}",
+            "name": f"{kind}_{hidden_size}_epochs_{num_epochs}",
             "kind": kind
         }
 

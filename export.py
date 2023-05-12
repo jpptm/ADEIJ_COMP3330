@@ -41,6 +41,8 @@ class Export:
         if self.preds is not None and self.labels is not None:
             self.cm_plot(confusion_matrix(self.preds, self.labels), self.intel_classes, save_to_file=True)
 
+        plt.close('all')
+
     # make predictions based on given dataloader
     def predict(self, loader):
         preds = []

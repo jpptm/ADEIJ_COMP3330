@@ -1,6 +1,43 @@
 import torch
 import torchvision
 from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights
+from efficientnet_pytorch import EfficientNet
+
+class CVModel(torch.nn.Module):
+    def __init__(self, num_classes, kind, hidden_size):
+        super(CVModel, self).__init__()
+
+        if kind == 'resnet50':
+            model = torchvision.models.resnet50(weights = ResNet50_Weights.DEFAULT)
+        elif kind == 'resnet18':
+            model = torchvision.models.resnet18(weights = ResNet18_Weights.DEFAULT)
+        elif kind == 'efficientnet':
+            model = EfficientNet.from_pretrained('efficientnet-b2')
+        else:
+            raise ValueError(f"Unsupported model kind: {kind}")
+
+        # Freeze model layers
+        for param in model.parameters():
+            param.requires_grad = False
+
+        if kind == 'efficientnet':
+            # Replace the last fully connected layer of EfficientNet with a new fully connected layer
+            in_features = model._fc.in_features
+            model._fc = torch.nn.Linear(in_features, hidden_size)
+        else:
+            # Replace the last fully connected layer of ResNet with a new fully connected layer
+            model.fc = torch.nn.Sequential(
+                torch.nn.Linear(model.fc.in_features, hidden_size),
+                torch.nn.ReLU(),
+                torch.nn.Linear(hidden_size, num_classes)
+            )
+
+        self.model = model
+        # self.weights = weights
+
+    def forward(self, x):
+        return self.model(x)
+
 
 # testing out some models
 # basing them off the:
@@ -105,33 +142,6 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 #     def forward(self, x):
 #         return self.model(x)
 
-class CVModel(torch.nn.Module):
-    def __init__(self, num_classes, kind, hidden_size):
-        super(CVModel, self).__init__()
-
-        if kind == 'resnet50':
-            model = torchvision.models.resnet50(weights = ResNet50_Weights.DEFAULT)
-        elif kind == 'resnet18':
-            model = torchvision.models.resnet18(weights = ResNet18_Weights.DEFAULT)
-        else:
-            raise ValueError(f"Unsupported model kind: {kind}")
-
-        # Freeze model layers
-        for param in model.parameters():
-            param.requires_grad = False
-
-        # Replace last fully connected layer with a new fully connected layer with 256 units and ReLU activation
-        model.fc = torch.nn.Sequential(
-            torch.nn.Linear(model.fc.in_features, hidden_size),
-            torch.nn.ReLU(),
-            torch.nn.Linear(hidden_size, num_classes)
-        )
-
-        self.model = model
-        # self.weights = weights
-
-    def forward(self, x):
-        return self.model(x)
 
 # class CVModel(torch.nn.Module):
 #     def __init__(self, num_classes):
