@@ -14,7 +14,7 @@ class Export:
     intel_classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
     preds, labels = None, None
 
-    def __init__(self, model, device, name, history, acc, loader=None, base_path='./outputs/'):
+    def __init__(self, model, device, name, history, loader, epoch, base_path='./outputs/'):
         self.model = model
         self.device = device
         self.name = name
@@ -30,11 +30,10 @@ class Export:
         # guess what this one does
         self.save_model_to_disk()
 
-        self.save_stats(acc)
-
         # make predictions if a loader was passed
-        if loader is not None:
-            self.preds, self.labels = self.predict(loader)
+        self.preds, self.labels, self.acc = self.predict(loader)
+
+        self.save_stats(self.acc, epoch)
 
         # basic plots
         self.loss_acc_plots(save_to_file=True)
@@ -47,6 +46,9 @@ class Export:
     def predict(self, loader):
         preds = []
         labels = []
+
+        correct = 0
+        total = 0
         with torch.no_grad():
             for inputs, targets in tqdm(loader,
                                         position=1,
@@ -66,21 +68,28 @@ class Export:
                 preds.extend(predicted.cpu().numpy())
                 labels.extend(targets.cpu().numpy())
 
-        return preds, labels
+                # get alternative accuracy values
+                total += targets.size(0)
+                correct += predicted.eq(targets).sum().item()
+
+            acc = 100.0 * correct / total
+
+        return preds, labels, acc
 
     def save_model_to_disk(self):
         model_path = self.path + self.name + '_model.pt'
         torch.save(self.model.state_dict(), model_path)
 
     # save the final tran loss and accuracy and stuff and things
-    def save_stats(self, acc):
+    def save_stats(self, acc, epoch):
         try:
             stats_path = self.path + self.name + '_stats.txt'
             with open(stats_path, 'a') as f:
                 f.write(
                     f"Train Loss = {self.history.train_losses[-1]:.4f}, Train Acc = {self.history.train_accs[-1]:.2f}%, "
                     f"Val Loss = {self.history.val_losses[-1]:.4f}, Val Acc = {self.history.val_accs[-1]:.2f}%\n, "
-                    f"Final Test Accuracy = {acc}%\n")
+                    f"Final Test Accuracy = {acc}%\n, "
+                    f"Epochs run = {epoch}%\n")
         except Exception as e:
             print(f"Error saving stats to file: {str(e)}")
 

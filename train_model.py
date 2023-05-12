@@ -93,7 +93,7 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, acc
 
 
-def test(csv_path, model, device, criterion, history, name):
+def test(csv_path, model, device, criterion, history, name, epoch):
 
     test_data = IntelTestLoader(csv_path)
     test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
@@ -106,34 +106,6 @@ def test(csv_path, model, device, criterion, history, name):
     correct = 0
     total = 0
 
-    with torch.no_grad():
-        for inputs, targets in tqdm(
-            test_loader,
-            position=1,
-            total=-len(test_loader),
-            leave=False,
-            desc="Testing"
-            ):
-
-            # Cast tensors to device
-            inputs, targets = inputs.to(device), targets.to(device)
-
-            # Calculate model output and loss
-            outputs = model(inputs)
-            loss = criterion(outputs, targets)
-
-            # Keep track of loss and accuracy
-            val_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-
-            truth.append(targets.cpu().numpy().flatten())
-            preds.append(predicted.cpu().numpy().flatten())
-
-    truth = [item for sublist in truth for item in sublist]
-    preds = [item for sublist in preds for item in sublist]
-
     # confusion_mat = confusion_matrix(truth, preds)
     # acc = accuracy_score(truth, preds)
 
@@ -143,13 +115,12 @@ def test(csv_path, model, device, criterion, history, name):
     # recall_global = recall_score(truth, preds, average="micro")
     # recall_mean = recall_score(truth, preds, average="macro")
 
-    acc = 100.0 * correct / total
     # avg_loss = val_loss / len(val_loader)
 
-    export.Export(model, device, name, history, acc, test_loader)
+    export.Export(model, device, name, history, test_loader, epoch)
 
 
-def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
+def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, test_every):
     # Set device - GPU if available, else CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO]: USING {str(device).upper()} DEVICE")
@@ -173,8 +144,8 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     val_losses, val_accs = [], []
 
     # Train model
-    for epoch in range(1, num_epochs + 1):
-        print(f"Epoch {epoch} of {num_epochs}")
+    for epoch in range(1, max_epochs + 1):
+        print(f"Epoch {epoch} of {max_epochs}")
         train_loss, train_acc = train(model, train_loader, loss, optimiser, device)
         val_loss, val_acc = validate(model, val_loader, loss, device)
 
@@ -186,10 +157,13 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
         # Save history
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
+        if epoch%test_every == 0:
+            test(data_path["test_csv"], model, device, loss, history, name, epoch)
+
     # metrics.save_model(model)
 
     # proof of concept for metrics, can add into the inference also
-    metrics.conf_matrix(model, val_loader, device)
+    # metrics.conf_matrix(model, val_loader, device)
 
     # Show loss and accuracy history
     # plt.figure()
@@ -202,7 +176,6 @@ def main(data_path, lr, num_epochs, batch_size, loss, hidden_size, name, kind):
     # plt.plot(val_accs, label="Validation accuracy")
     # plt.legend()
     # plt.show()
-    test(data_path["test_csv"], model, device, loss, history, name)
 
 
 if __name__ == "__main__":
@@ -217,24 +190,27 @@ if __name__ == "__main__":
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
     lr = 0.001
-    num_epochs = 50
-    batch_size = 55
+    max_epochs = 40
+    # every X epochs we save the model (so we can do it in one go). Please make sure this is a multiple of max_epochs
+    test_every = 10
+    batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
-    kind = 'efficientnet'
+    kind = 'resnet50'
+    hidden_size = 30
+
 
     for i in range(10, 20):
-        hidden_size = math.ceil(i / 2) * 100
-        num_epochs = 50 if num_epochs == 30 else 30
 
         input_map = {
             "data_path": data_paths,
             "lr": lr,
-            "num_epochs": num_epochs,
+            "max_epochs": max_epochs,
             "batch_size": batch_size,
             "loss": loss,
             "hidden_size": hidden_size,
-            "name": f"{kind}_{hidden_size}_epochs_{num_epochs}",
-            "kind": kind
+            "name": f"{kind}_{hidden_size}",
+            "kind": kind,
+            "test_every": test_every
         }
 
         # Run main function
@@ -243,7 +219,7 @@ if __name__ == "__main__":
     # input_map2 = {
     #     "data_path": data_paths,
     #     "lr": lr,
-    #     "num_epochs": num_epochs,
+    #     "max_epochs": max_epochs,
     #     "batch_size": batch_size,
     #     "loss": loss,
     #     "hidden_size": 30
@@ -253,7 +229,7 @@ if __name__ == "__main__":
     # input_map2 = {
     #     "data_path": data_paths,
     #     "lr": lr,
-    #     "num_epochs": num_epochs,
+    #     "max_epochs": max_epochs,
     #     "batch_size": batch_size,
     #     "loss": loss,
     #     "hidden_size": 30
