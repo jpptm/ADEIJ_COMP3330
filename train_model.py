@@ -202,12 +202,11 @@ if __name__ == "__main__":
     batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
     kind = 'resnet50'
-    hidden_size_increment = 20
+    hidden_size = 150
+    hidden_size_increment = 10
+    use_learning_decay = True
 
-
-    for i in range(5, 10):
-
-        hidden_size = i * hidden_size_increment
+    for i in range(1, 5):
 
         input_map = {
             "data_path": data_paths,
@@ -218,8 +217,11 @@ if __name__ == "__main__":
             "hidden_size": hidden_size,
             "name": f"{kind}_{hidden_size}",
             "kind": kind,
-            "test_every": test_every
+            "test_every": test_every,
+            "use_learning_decay": use_learning_decay
         }
+
+        hidden_size += hidden_size_increment
 
         # Run main function
         main(**input_map)
