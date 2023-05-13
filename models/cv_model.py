@@ -1,6 +1,6 @@
 import torch
 import torchvision
-from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights
+from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights, vgg16, VGG16_Weights
 from efficientnet_pytorch import EfficientNet
 
 class CVModel(torch.nn.Module):
@@ -13,6 +13,8 @@ class CVModel(torch.nn.Module):
             model = torchvision.models.resnet18(weights = ResNet18_Weights.DEFAULT)
         elif kind == 'efficientnet':
             model = EfficientNet.from_pretrained('efficientnet-b2')
+        elif kind == 'vgg':
+            model = torchvision.models.vgg16(weights=VGG16_Weights.DEFAULT)
         else:
             raise ValueError(f"Unsupported model kind: {kind}")
 
@@ -24,6 +26,10 @@ class CVModel(torch.nn.Module):
             # Replace the last fully connected layer of EfficientNet with a new fully connected layer
             in_features = model._fc.in_features
             model._fc = torch.nn.Linear(in_features, hidden_size)
+        elif kind == 'vgg':
+            # Replace the last fully connected layer of vGG with a new fully connected layer
+            in_features = model.classifier[6].in_features
+            model.classifier[6] = torch.nn.Linear(in_features, hidden_size)
         else:
             # Replace the last fully connected layer of ResNet with a new fully connected layer
             model.fc = torch.nn.Sequential(
@@ -33,7 +39,6 @@ class CVModel(torch.nn.Module):
             )
 
         self.model = model
-        # self.weights = weights
 
     def forward(self, x):
         return self.model(x)

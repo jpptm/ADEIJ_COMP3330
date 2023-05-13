@@ -197,16 +197,22 @@ if __name__ == "__main__":
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
     lr = 0.1
+
+    # epochs settings
     max_epochs = 30
-    test_every = 10
+    test_every = 5
+
+    # training settings
     batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
-    kind = 'resnet50'
-    hidden_size = 150
-    hidden_size_increment = 10
     use_learning_decay = True
 
-    for i in range(1, 5):
+    # model settings
+    kind = 'vgg'
+    hidden_size = 100
+    hidden_size_increment = 50
+
+    for i in range(1, 3):
 
         input_map = {
             "data_path": data_paths,
