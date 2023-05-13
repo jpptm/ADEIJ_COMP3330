@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 from intel_dataloader import IntelDataLoader, IntelTestLoader
 
@@ -120,7 +121,7 @@ def test(csv_path, model, device, criterion, history, name, epoch):
     export.Export(model, device, name, history, test_loader, epoch)
 
 
-def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, test_every):
+def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, test_every, use_learning_decay):
     # Set device - GPU if available, else CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO]: USING {str(device).upper()} DEVICE")
@@ -137,6 +138,8 @@ def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, t
     model = CVModel(num_classes=6, hidden_size=hidden_size, kind=kind).to(device)
 
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)
+    if use_learning_decay:
+        scheduler = CosineAnnealingLR(optimiser, T_max=max_epochs, eta_min=0)
 
     # History logging
     history = export.History()
@@ -147,6 +150,9 @@ def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, t
     for epoch in range(1, max_epochs + 1):
         print(f"Epoch {epoch} of {max_epochs}")
         train_loss, train_acc = train(model, train_loader, loss, optimiser, device)
+        if use_learning_decay:
+            # Update learning rate according to cosine annealing
+            scheduler.step()
         val_loss, val_acc = validate(model, val_loader, loss, device)
 
         print(
@@ -157,7 +163,7 @@ def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, t
         # Save history
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
-        if epoch%test_every == 0:
+        if epoch%test_every == 0 or epoch == max_epochs:
             save_name = name + "_epochs_" + str(epoch)
             test(data_path["test_csv"], model, device, loss, history, save_name, epoch)
 
@@ -190,17 +196,17 @@ if __name__ == "__main__":
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
-    lr = 0.001
-    max_epochs = 40
-    # every X epochs we save the model (so we can do it in one go). Please make sure this is a multiple of max_epochs
+    lr = 0.1
+    max_epochs = 30
     test_every = 10
     batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
     kind = 'resnet50'
-    hidden_size = 30
+    hidden_size = 150
+    hidden_size_increment = 10
+    use_learning_decay = True
 
-
-    for i in range(10, 20):
+    for i in range(1, 5):
 
         input_map = {
             "data_path": data_paths,
@@ -211,8 +217,11 @@ if __name__ == "__main__":
             "hidden_size": hidden_size,
             "name": f"{kind}_{hidden_size}",
             "kind": kind,
-            "test_every": test_every
+            "test_every": test_every,
+            "use_learning_decay": use_learning_decay
         }
+
+        hidden_size += hidden_size_increment
 
         # Run main function
         main(**input_map)
