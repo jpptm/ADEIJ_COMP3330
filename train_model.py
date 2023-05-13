@@ -158,7 +158,8 @@ def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, t
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
         if epoch%test_every == 0:
-            test(data_path["test_csv"], model, device, loss, history, name, epoch)
+            save_name = name + "_epochs_" + str(epoch)
+            test(data_path["test_csv"], model, device, loss, history, save_name, epoch)
 
     # metrics.save_model(model)
 
