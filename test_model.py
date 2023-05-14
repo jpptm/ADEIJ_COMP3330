@@ -21,18 +21,9 @@ def test(csv_path, model, device):
 
 	epoch = 0
 
-	# confusion_mat = confusion_matrix(truth, preds)
-	# acc = accuracy_score(truth, preds)
-
-	# precision_global = precision_score(truth, preds, average="micro")
-	# precision_mean = precision_score(truth, preds, average="macro")
-
-	# recall_global = recall_score(truth, preds, average="micro")
-	# recall_mean = recall_score(truth, preds, average="macro")
-
-	# avg_loss = val_loss / len(val_loader)
 	history=None
 	export.Export(model, device, history, test_loader)
+
 
 def main(data_path, hidden_size, name, kind):
 	# Set device - GPU if available, else CPU
@@ -40,9 +31,9 @@ def main(data_path, hidden_size, name, kind):
 	print(f"[INFO]: USING {str(device).upper()} DEVICE")
 
 	# Create model and optimiser
-	model = CVModel(num_classes=6, hidden_size=hidden_size, kind=kind, name=name).to(device)
+	model = CVModel(num_classes=6, hidden_size=hidden_size, kind=kind, name=name+"_test").to(device)
 	# Load the state from the model path
-	model.load_state_dict(torch.load(data_path["model_path"], map_location=device))
+	model.load_state_dict(torch.load(data_path["model_path"]))
 
 	test(data_path["test_csv"], model, device)
 
@@ -54,17 +45,16 @@ if __name__ == "__main__":
 	# Define hyperparameters
 	data_paths = {
 		"test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv",
-		"model_path": "./outputs/resnet50_150/resnet50_150_model.pt"
+		"model_path": "./outputs/resnet18_60/resnet18_60_model.pt"
 	}
 
 	# model settings
 	# kinds supported: resnet50, resnet18, vgg, efficientnet
 	# make sure kind and hidden_size match the model you want to use
-	kind = 'resnet50'
-	hidden_size = 150
-	training = False
+	kind = 'resnet18'
+	hidden_size = 100
 
-    # define model path if not training or training from scratch
+  # define model path if not training or training from scratch
 	input_map = {
 		"data_path": data_paths,
 		"hidden_size": hidden_size,

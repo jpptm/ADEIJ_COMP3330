@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import itertools
 import numpy as np
+from sklearn.metrics import precision_score, recall_score, accuracy_score
 
 # local modules
 import metrics
@@ -31,9 +32,7 @@ class Export:
         self.save_model_to_disk()
 
         # make predictions if a loader was passed
-        self.preds, self.labels, self.acc = self.predict(loader)
-
-        self.save_stats(self.acc)
+        self.preds, self.labels = self.predict(loader)
 
         # basic plots
         if self.history is not None:
@@ -76,7 +75,18 @@ class Export:
 
             acc = 100.0 * correct / total
 
-        return preds, labels, acc
+            # global is avg across all guesses
+            # mean is avg of all classes
+            # if that makes sense lol
+            precision_global = precision_score(labels, preds, average="micro")
+            precision_mean = precision_score(labels, preds, average="macro")
+
+            recall_global = recall_score(labels, preds, average="micro")
+            recall_mean = recall_score(labels, preds, average="macro")
+
+        self.save_stats(acc, precision_global, precision_mean, recall_global, recall_mean)
+
+        return preds, labels
 
 
     def save_model_to_disk(self):
@@ -85,7 +95,7 @@ class Export:
 
 
     # save the final tran loss and accuracy and stuff and things
-    def save_stats(self, acc):
+    def save_stats(self, acc, precision_global, precision_mean, recall_global, recall_mean):
         try:
             stats_path = self.path + self.name + '_stats.txt'
             with open(stats_path, 'a') as f:
@@ -96,6 +106,10 @@ class Export:
                     )
                 f.write(
                     f"Final Test Accuracy = {acc}%\n, "
+                    f"Precision Global = {precision_global}%\n, "
+                    f"Precision Mean = {precision_mean}%\n, "
+                    f"Recall Global = {recall_global}%\n, "
+                    f"Recall Mean = {recall_mean}%\n, "
                 )
         except Exception as e:
             print(f"Error saving stats to file: {str(e)}")

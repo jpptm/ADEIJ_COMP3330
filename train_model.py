@@ -118,7 +118,7 @@ def test(csv_path, model, device, criterion, history, epoch):
 
     # avg_loss = val_loss / len(val_loader)
 
-    export.Export(model, device, test_loader, epoch, history)
+    export.Export(model, device, history, test_loader)
 
 
 def main(data_path, hidden_size, name, kind, lr, max_epochs, test_every, batch_size, loss, use_learning_decay=False):
@@ -166,8 +166,8 @@ def main(data_path, hidden_size, name, kind, lr, max_epochs, test_every, batch_s
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
         if epoch%test_every == 0 or epoch == max_epochs:
-            save_name = model.name + "_epochs_" + str(epoch)
-            test(data_path["test_csv"], model, device, loss, save_name, epoch, history)
+            model.name = model.name + "_epochs_" + str(epoch)
+            test(data_path["test_csv"], model, device, loss, history, epoch)
 
 
 if __name__ == "__main__":
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     # training settings
     from_scratch = True
     lr = 0.005
-    max_epochs = 30
+    max_epochs = 1
     test_every = 5
     batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
