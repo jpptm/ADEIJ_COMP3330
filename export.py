@@ -14,14 +14,14 @@ class Export:
     intel_classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
     preds, labels = None, None
 
-    def __init__(self, model, device, name, history, loader, epoch, base_path='./outputs/'):
+    def __init__(self, model, device, history, loader, base_path='./outputs/'):
         self.model = model
         self.device = device
-        self.name = name
+        self.name = model.name
         self.history = history
 
         # path to store stuff in
-        self.path = base_path + name + '/'
+        self.path = base_path + self.name + '/'
 
         # Create a folder to store the model info in (default is ./outputs/<name>/)
         # If the directory already exists then nothing will happen
@@ -33,10 +33,12 @@ class Export:
         # make predictions if a loader was passed
         self.preds, self.labels, self.acc = self.predict(loader)
 
-        self.save_stats(self.acc, epoch)
+        self.save_stats(self.acc)
 
         # basic plots
-        self.loss_acc_plots(save_to_file=True)
+        if self.history is not None:
+            self.loss_acc_plots(save_to_file=True)
+
         if self.preds is not None and self.labels is not None:
             self.cm_plot(confusion_matrix(self.preds, self.labels), self.intel_classes, save_to_file=True)
 
@@ -76,20 +78,25 @@ class Export:
 
         return preds, labels, acc
 
+
     def save_model_to_disk(self):
         model_path = self.path + self.name + '_model.pt'
         torch.save(self.model.state_dict(), model_path)
 
+
     # save the final tran loss and accuracy and stuff and things
-    def save_stats(self, acc, epoch):
+    def save_stats(self, acc):
         try:
             stats_path = self.path + self.name + '_stats.txt'
             with open(stats_path, 'a') as f:
+                if self.history is not None:
+                    f.write(
+                        f"Train Loss = {self.history.train_losses[-1]:.4f}, Train Acc = {self.history.train_accs[-1]:.2f}%, "
+                        f"Val Loss = {self.history.val_losses[-1]:.4f}, Val Acc = {self.history.val_accs[-1]:.2f}%\n, "
+                    )
                 f.write(
-                    f"Train Loss = {self.history.train_losses[-1]:.4f}, Train Acc = {self.history.train_accs[-1]:.2f}%, "
-                    f"Val Loss = {self.history.val_losses[-1]:.4f}, Val Acc = {self.history.val_accs[-1]:.2f}%\n, "
                     f"Final Test Accuracy = {acc}%\n, "
-                    f"Epochs run = {epoch}%\n")
+                )
         except Exception as e:
             print(f"Error saving stats to file: {str(e)}")
 
@@ -115,7 +122,7 @@ class Export:
         # show all figures
         # plt.show()
 
-    def loss_acc_plots(self, save_to_file=False, show_plot=False):
+    def loss_acc_plots(self, save_to_file=True, show_plot=False):
         # Generate plot for loss
         loss_fig, loss_ax = plt.subplots()
         loss_ax.plot(self.history.train_losses, label="Training loss")
@@ -139,7 +146,7 @@ class Export:
             loss_fig.show()
             acc_fig.show()
 
-    def cm_plot(self, cm, classes, save_to_file=False, show_plot=False, cmap=plt.cm.Blues):
+    def cm_plot(self, cm, classes, save_to_file=True, show_plot=False, cmap=plt.cm.Blues):
         # normalise the confusion matrix
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 

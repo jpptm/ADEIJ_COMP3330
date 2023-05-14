@@ -4,8 +4,9 @@ from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_We
 from efficientnet_pytorch import EfficientNet
 
 class CVModel(torch.nn.Module):
-    def __init__(self, num_classes, kind, hidden_size):
+    def __init__(self, num_classes, kind, hidden_size, name):
         super(CVModel, self).__init__()
+        self.name = name
 
         if kind == 'resnet50':
             model = torchvision.models.resnet50(weights = ResNet50_Weights.DEFAULT)
