@@ -5,8 +5,9 @@ from efficientnet_pytorch import EfficientNet
 import timm
 
 class CVModel(torch.nn.Module):
-    def __init__(self, num_classes, kind, hidden_size):
+    def __init__(self, num_classes, kind, hidden_size, name):
         super(CVModel, self).__init__()
+        self.name = name
 
         if kind == 'resnet50':
             model = torchvision.models.resnet50(weights = ResNet50_Weights.DEFAULT)
