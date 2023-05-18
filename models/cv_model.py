@@ -2,6 +2,7 @@ import torch
 import torchvision
 from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights, vgg16, VGG16_Weights
 from efficientnet_pytorch import EfficientNet
+import timm
 
 class CVModel(torch.nn.Module):
     def __init__(self, num_classes, kind, hidden_size):
@@ -15,6 +16,9 @@ class CVModel(torch.nn.Module):
             model = EfficientNet.from_pretrained('efficientnet-b2')
         elif kind == 'vgg':
             model = torchvision.models.vgg16(weights=VGG16_Weights.DEFAULT)
+        elif kind == 'vit':
+            model = timm.create_model('vit_base_patch16_224', pretrained=True)
+            model.head = torch.nn.Linear(model.head.in_features, hidden_size)
         else:
             raise ValueError(f"Unsupported model kind: {kind}")
 
@@ -30,6 +34,13 @@ class CVModel(torch.nn.Module):
             # Replace the last fully connected layer of vGG with a new fully connected layer
             in_features = model.classifier[6].in_features
             model.classifier[6] = torch.nn.Linear(in_features, hidden_size)
+        elif kind == 'vit':
+            # Replace the last fully connected layer of ViT with a new fully connected layer
+            model.head = torch.nn.Sequential(
+                torch.nn.Linear(model.head.in_features, hidden_size),
+                torch.nn.ReLU(),
+                torch.nn.Linear(hidden_size, num_classes)
+            )
         else:
             # Replace the last fully connected layer of ResNet with a new fully connected layer
             model.fc = torch.nn.Sequential(

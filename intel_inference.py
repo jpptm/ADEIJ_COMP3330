@@ -29,8 +29,9 @@ class InferenceLoader(torch.utils.data.Dataset):
         img = cv2.imread(img_path)
         # Make sure no images have the wrong shape
         img = (
-            cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (150, 150))
-            if img.shape != (150, 150, 3)
+            # can try 150, 150 also
+            cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (224, 224))
+            if img.shape != (224, 224, 3)
             else cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         )
 

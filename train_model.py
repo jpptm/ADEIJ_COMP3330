@@ -126,6 +126,8 @@ def main(data_path, lr, max_epochs, batch_size, loss, hidden_size, name, kind, t
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO]: USING {str(device).upper()} DEVICE")
 
+    print("Parallel test!")
+
     # Create dataset
     train_dataset = IntelDataLoader(data_path["train"])
     val_dataset = IntelDataLoader(data_path["val"])
@@ -196,24 +198,32 @@ if __name__ == "__main__":
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
-    lr = 0.1
+    lr = 0.0001
 
     # epochs settings
-    max_epochs = 30
-    test_every = 5
+    max_epochs = 1
+    test_every = 2
 
     # training settings
     batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
-    use_learning_decay = True
+    use_learning_decay = False
 
     # model settings
-    kind = 'vgg'
-    hidden_size = 100
-    hidden_size_increment = 50
+    kind = 'vit'
+    hidden_size = 90
+    hidden_size_increment = 10
 
     for i in range(1, 3):
-
+        if i == 1:
+            hidden_size = 150
+        if i == 1:
+            hidden_size = 20
+        elif i == 2:
+            hidden_size = 30
+        elif i == 3:
+            hidden_size = 150
+        
         input_map = {
             "data_path": data_paths,
             "lr": lr,

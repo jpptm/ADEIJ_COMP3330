@@ -49,6 +49,10 @@ class IntelDataLoader(torch.utils.data.Dataset):
         # Remove this when training, the data loader should be the one to handle all the shuffling
         # np.random.shuffle(self.master_data)
 
+
+        # bicubic interpolation
+        # bilinear
+
         # Data augmentations to be applied
         self.transforms = tv.transforms.Compose(
             [
@@ -65,7 +69,7 @@ class IntelDataLoader(torch.utils.data.Dataset):
                 tv.transforms.RandomEqualize(p=0.1),
                 # Have to be real careful with how we include the random crop as it could confuse the network
                 # IMO, we just don't use random crop cause it's very easy to confuse the network since the dataset has buildings and streets
-                tv.transforms.RandomResizedCrop(size=(150, 150)),
+                tv.transforms.RandomResizedCrop(size=(224, 224)),
                 tv.transforms.RandomVerticalFlip(p=0.15),
                 tv.transforms.RandomHorizontalFlip(p=0.5),
                 tv.transforms.RandomPerspective(distortion_scale=0.5, p=0.3),
@@ -126,7 +130,7 @@ class IntelTestLoader(torch.utils.data.Dataset):
                 os.getcwd(), "..", "ADEIJ_datasets", "seg_pred", "seg_pred", img_name
             )
         )
-        img = cv2.resize(img, (150, 150)) if img.shape != (150, 150, 3) else img
+        img = cv2.resize(img, (224, 224)) if img.shape != (224, 224, 3) else img
         img = torch.from_numpy(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
         # Convert the image to (Channels, H, W) format
@@ -162,7 +166,7 @@ class IntelTestLoader(torch.utils.data.Dataset):
                 os.getcwd(), "..", "ADEIJ_datasets", "seg_pred", "seg_pred", img_name
             )
         )
-        img = cv2.resize(img, (150, 150)) if img.shape != (150, 150, 3) else img
+        img = cv2.resize(img, (224, 224)) if img.shape != (224, 224, 3) else img
         img = torch.from_numpy(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
 
         # Convert the image to (Channels, H, W) format
