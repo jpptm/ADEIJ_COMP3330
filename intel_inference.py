@@ -1,5 +1,6 @@
 import csv
 import os
+import argparse
 
 import cv2
 import torch
@@ -32,7 +33,7 @@ class InferenceLoader(torch.utils.data.Dataset):
         return torch.tensor(img, dtype=torch.float32).permute(2, 0, 1), img_path
 
 
-def inference(model_path, imgs_path):
+def inference(model_path, imgs_path, out_path):
     # Load model
     model = CVModel(num_classes=6)
     model.load_state_dict(torch.load(model_path))
@@ -48,7 +49,7 @@ def inference(model_path, imgs_path):
     # Load known classes
     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
-    with open("preds.csv", "w", newline="") as f:
+    with open(out_path, "w", newline="") as f:
         writer = csv.writer(f)
 
         # Tqdm for progress bar
@@ -62,12 +63,17 @@ def inference(model_path, imgs_path):
 
 
 if __name__ == "__main__":
-    # NOTE The model path is expected to be in the project's root directory
-    # NOTE The image path that contains the test images is expected to be in the before project's root directory
-    # NOTE The file will be written in the project's root directory
-    model_path = f"{os.path.join(os.getcwd(), 'intel_model.pt')}"
+    # Create the argument parser
+    parser = argparse.ArgumentParser()
 
-    folder_name = "ADEIJ_datasets"
-    imgs_path = os.path.join(os.getcwd(), "..", folder_name, "seg_pred", "seg_pred")
+    # Add the model argument
+    parser.add_argument('-m', '--model', type=str, help='Specify the model path')
+    # Add the img-folder argument
+    parser.add_argument('-i', '--image-folder', type=str, default='../ADEIJ_datasets/seg_pred/seg_pred', help='Specify the image folder path')
+    # Add the output argument (optional)
+    parser.add_argument('-o', '--output', type=str, default='preds.csv', help='Specify the output CSV file name (optional)')
 
-    inference(model_path=model_path, imgs_path=imgs_path)
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    inference(model_path=args.model, imgs_path=args.image_folder, out_path=args.output)
