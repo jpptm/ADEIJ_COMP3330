@@ -49,6 +49,7 @@ def inference(model_path, imgs_path, out_path):
     # Load known classes
     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
 
+    # Load output file (and create if it doesn't exist)
     with open(out_path, "w", newline="") as f:
         writer = csv.writer(f)
 
@@ -56,9 +57,9 @@ def inference(model_path, imgs_path, out_path):
         for img, img_path in tqdm(inference_dataloader,
                                   total=len(inference_dataloader),
                                   desc="Inference"):
-
+            # Generate full predictions
             predictions = model(img.to(device))
-
+            # Add the top prediction to the csv
             writer.writerow([img_path[0], torch.argmax(predictions).item()])
 
 
@@ -66,14 +67,13 @@ if __name__ == "__main__":
     # Create the argument parser
     parser = argparse.ArgumentParser()
 
-    # Add the model argument
+    # Add the commandline arguments
     parser.add_argument('-m', '--model', type=str, help='Specify the model path')
-    # Add the img-folder argument
     parser.add_argument('-i', '--image-folder', type=str, default='../ADEIJ_datasets/seg_pred/seg_pred', help='Specify the image folder path')
-    # Add the output argument (optional)
     parser.add_argument('-o', '--output', type=str, default='preds.csv', help='Specify the output CSV file name (optional)')
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
+    # Run script with arguments
     inference(model_path=args.model, imgs_path=args.image_folder, out_path=args.output)
