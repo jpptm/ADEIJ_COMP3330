@@ -1,39 +1,7 @@
-# import csv
-# import os
-# import torch
-# import cv2
-
-# classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
-# class_map = {k: v for k, v in zip(range(len(classes)), classes)}
-# print(class_map)
-
-# with open("seg_pred_labels.csv", "r") as f:
-#     reader = csv.reader(f)
-
-#     data = [row for row in reader]
-
-#     for d in data:
-
-#         image_path = os.path.join(
-#             os.getcwd(), "..", "ADEIJ_datasets", "seg_pred", "seg_pred", d[0]
-#         )
-
-#         img = cv2.imread(image_path)
-
-#         cv2.imshow(d[1], cv2.resize(img, (450, 450)))
-
-#         if 27 == cv2.waitKey(0):
-#             exit(0)
-
-#         cv2.destroyAllWindows()
-
-# print(torch.argmax(torch.tensor(1, dtype=torch.int64)).item())
-
 import os
 
 import datasets
 import evaluate
-import niacin
 import numpy as np
 
 from sklearn.metrics import (
@@ -43,11 +11,6 @@ from sklearn.metrics import (
     recall_score,
 )
 from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    DistilBertConfig,
-    DistilBertForSequenceClassification,
-    DistilBertTokenizer,
     Trainer,
     TrainingArguments,
 )
@@ -123,25 +86,21 @@ full_train = datasets.concatenate_datasets([train_all, augmented_dataset])
 print(full_train)
 
 # Split concatenated dataset
-# train_val = full_train.train_test_split(test_size=0.2, shuffle=True)
 train_val = full_train.train_test_split(test_size=0.2, shuffle=True)
 
 train = train_val["train"]
 val = train_val["test"]
 
-# tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
-# tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
-
-from transformers import AutoTokenizer, AlbertForSequenceClassification
-from transformers import ErnieForSequenceClassification
-from transformers import OpenAIGPTForSequenceClassification
-from transformers import GPT2ForSequenceClassification
 
 # Initializing a model (with random weights) from the configuration
-# tokenizer = AutoTokenizer.from_pretrained("nghuyong/ernie-2.0-large-en")
-# model = ErnieForSequenceClassification.from_pretrained("nghuyong/ernie-2.0-large-en", num_labels=6)
-tokenizer = AutoTokenizer.from_pretrained("albert-base-v2")
-model = AlbertForSequenceClassification.from_pretrained("albert-base-v2", num_labels=6)
+from transformers import RobertaTokenizer, RobertaForSequenceClassification
+
+# Load the pre-trained BERT model and tokenizer
+tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+model = RobertaForSequenceClassification.from_pretrained("roberta-base", num_labels=6)
+
+# for param in model.base_model.parameters():
+#     param.requires_grad = False
 
 # Tokenising function to be mapped
 def tokenize_function(examples):
@@ -166,8 +125,8 @@ training_args = TrainingArguments(
     output_dir=os.getcwd(),
     evaluation_strategy="epoch",
     learning_rate=1e-4,
-    per_device_eval_batch_size=16,
-    per_device_train_batch_size=16,
+    per_device_eval_batch_size=8,
+    per_device_train_batch_size=8,
     num_train_epochs=10,
     weight_decay=0.01,
     # load_best_model_at_end=True,
