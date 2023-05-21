@@ -46,7 +46,7 @@ class IntelDataLoader(torch.utils.data.Dataset):
                 self.master_data.append(item)
 
         # Remove this when training, the data loader should be the one to handle all the shuffling
-        np.random.shuffle(self.master_data)
+        # np.random.shuffle(self.master_data)
 
         # Data augmentations to be applied
         self.transforms = tv.transforms.Compose(
@@ -96,30 +96,33 @@ class IntelDataLoader(torch.utils.data.Dataset):
             )(img)
 
         # Comment the line/s below if you want to show the augmented images
-        # img = img.type(torch.float32) / 255
+        img = img.type(torch.float32) / 255.0
 
         # Convert the label to a tensor
-        label = torch.tensor(label)
+        label = torch.tensor(label, dtype=torch.int64)
 
         return img, label
 
 
 # Uncomment to show the images
-dl = IntelDataLoader("C:/Microsoft VS Code/ADEIJ_datasets/seg_train/seg_train")
-for i in range(100):
-    ci = dl.__getitem__(i)
+# TODO: make this relative
+# dl = IntelDataLoader("C:/Microsoft VS Code/ADEIJ_datasets/seg_train/seg_train")
+# dl = IntelDataLoader("C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train")
+# for i in range(100):
+#     ci = dl.__getitem__(i)
 
-    print(f"Label: {dl.known_classes[ci[1].int()]}")
+#     print(f"Label: {dl.known_classes[ci[1].int()]}")
 
-    img = cv2.imshow(
-        "", cv2.resize(torch.permute(ci[0], (1, 2, 0)).numpy(), (150, 150))
-    )
+#     img = cv2.imshow(
+#         "", cv2.resize(torch.permute(ci[0], (1, 2, 0)).numpy(), (150, 150))
+#     )
 
-    if cv2.waitKey(0) == 27:
-        exit(0)
+#     if cv2.waitKey(0) == 27:
+#         exit(0)
 
 
 # Ideas on how to use (The dataloader should be able to shuffle it by itself using the shuffle argument)
+# TODO: make relative path
 # path = "C:/Microsoft VS Code/ADEIJ_datasets/seg_train/seg_train"
 # s = IntelDataLoader(path)
 # print(torch.Tensor.size(s.__get_item__(0)[0].permute(2, 0, 1)))
