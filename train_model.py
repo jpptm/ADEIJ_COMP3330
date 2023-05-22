@@ -180,15 +180,14 @@ if __name__ == "__main__":
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
         "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
-    lr = 0.0001
 
     # epochs settings
-    max_epochs = 1
+    max_epochs = 20
     test_every = 2
 
     # training settings
     from_scratch = True
-    lr = 0.005
+    lr = 0.0001
     max_epochs = 1
     test_every = 5
     batch_size = 64
@@ -201,15 +200,8 @@ if __name__ == "__main__":
     hidden_size_increment = 10
 
     for i in range(1, 3):
-        if i == 1:
-            hidden_size = 150
-        if i == 1:
-            hidden_size = 20
-        elif i == 2:
-            hidden_size = 30
-        elif i == 3:
-            hidden_size = 150
-        
+        hidden_size = i * hidden_size_increment
+
         input_map = {
             "data_path": data_paths,
             "hidden_size": hidden_size,
@@ -227,23 +219,3 @@ if __name__ == "__main__":
 
         # Run main function
         main(**input_map)
-
-    # input_map2 = {
-    #     "data_path": data_paths,
-    #     "lr": lr,
-    #     "max_epochs": max_epochs,
-    #     "batch_size": batch_size,
-    #     "loss": loss,
-    #     "hidden_size": 30
-    #     "name": CVModel30
-    # }
-
-    # input_map2 = {
-    #     "data_path": data_paths,
-    #     "lr": lr,
-    #     "max_epochs": max_epochs,
-    #     "batch_size": batch_size,
-    #     "loss": loss,
-    #     "hidden_size": 30
-    #     "name": CVModel30
-    # }
