@@ -6,10 +6,7 @@ import cv2
 import torch
 from tqdm import tqdm
 
-from models.cv_model import CVModel
 
-
-# Class to load image to a data loader so we can batch our inferences
 class InferenceLoader(torch.utils.data.Dataset):
     def __init__(self, imgs_path):
         # If file in directory is a .jpg add it to the list
@@ -34,17 +31,18 @@ class InferenceLoader(torch.utils.data.Dataset):
 
 
 def inference(model_path, imgs_path, out_path):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     # Load model
-    model = CVModel(num_classes=6)
-    model.load_state_dict(torch.load(model_path))
+    model = torch.jit.load(model_path)
     model.eval()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
     # Load data
     inference_data = InferenceLoader(imgs_path)
-    inference_dataloader = torch.utils.data.DataLoader(inference_data, shuffle=False)
+    inference_dataloader = torch.utils.data.DataLoader(
+        inference_data, shuffle=False)
 
     # Load known classes
     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
@@ -68,12 +66,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # Add the commandline arguments
-    parser.add_argument('-m', '--model', type=str, help='Specify the model path')
-    parser.add_argument('-i', '--image-folder', type=str, default='../ADEIJ_datasets/seg_pred/seg_pred', help='Specify the image folder path')
-    parser.add_argument('-o', '--output', type=str, default='preds.csv', help='Specify the output CSV file name (optional)')
+    parser.add_argument('-m', '--model-script', type=str, default='./model_script.pt',
+                        help='Specify the model script path')
+    parser.add_argument('-i', '--image-folder', type=str,
+                        default='../ADEIJ_datasets/seg_pred/seg_pred',
+                        help='Specify the image folder path')
+    parser.add_argument('-o', '--output', type=str, default='./preds.csv',
+                        help='Specify the output CSV file name (optional)')
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
     # Run script with arguments
-    inference(model_path=args.model, imgs_path=args.image_folder, out_path=args.output)
+    inference(model_path=args.model_script,
+              imgs_path=args.image_folder, out_path=args.output)
