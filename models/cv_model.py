@@ -19,7 +19,11 @@ class CVModel(torch.nn.Module):
             model = torchvision.models.vgg16(weights=VGG16_Weights.DEFAULT)
         elif kind == 'vit':
             model = timm.create_model('vit_base_patch16_224', pretrained=True)
-            model.head = torch.nn.Linear(model.head.in_features, hidden_size)
+            for name, param in model.named_parameters():
+                if 'blocks.10' in name:  # The second last transformer block
+                    param.requires_grad = True
+                else:
+                    param.requires_grad = False
         else:
             raise ValueError(f"Unsupported model kind: {kind}")
 
