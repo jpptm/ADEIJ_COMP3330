@@ -188,8 +188,6 @@ if __name__ == "__main__":
     # training settings
     from_scratch = True
     lr = 0.0001
-    max_epochs = 1
-    test_every = 5
     batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
     use_learning_decay = False
@@ -199,22 +197,20 @@ if __name__ == "__main__":
     hidden_size = 80
     hidden_size_increment = 10
 
-    for i in range(1, 3):
+    input_map = {
+        "data_path": data_paths,
+        "hidden_size": hidden_size,
+        "name": f"{kind}_{hidden_size}",
+        "kind": kind,
+        "lr": lr,
+        "max_epochs": max_epochs,
+        "test_every": test_every,
+        "batch_size": batch_size,
+        "loss": loss,
+        "use_learning_decay": use_learning_decay
+    }
 
-        input_map = {
-            "data_path": data_paths,
-            "hidden_size": hidden_size,
-            "name": f"{kind}_{hidden_size}",
-            "kind": kind,
-            "lr": lr,
-            "max_epochs": max_epochs,
-            "test_every": test_every,
-            "batch_size": batch_size,
-            "loss": loss,
-            "use_learning_decay": use_learning_decay
-        }
+    hidden_size += hidden_size_increment
 
-        hidden_size += hidden_size_increment
-
-        # Run main function
-        main(**input_map)
+    # Run main function
+    main(**input_map)
