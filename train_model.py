@@ -195,12 +195,11 @@ if __name__ == "__main__":
     use_learning_decay = False
 
     # model settings
-    kind = 'vit'
-    hidden_size = 90
+    kind = 'resnet50'
+    hidden_size = 80
     hidden_size_increment = 10
 
     for i in range(1, 3):
-        hidden_size = i * hidden_size_increment
 
         input_map = {
             "data_path": data_paths,
