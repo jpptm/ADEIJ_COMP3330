@@ -193,7 +193,7 @@ if __name__ == "__main__":
     use_learning_decay = False
 
     # model settings
-    kind = 'resnet50'
+    kind = 'vit'
     hidden_size = 80
     hidden_size_increment = 10
 
