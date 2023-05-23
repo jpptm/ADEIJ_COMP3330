@@ -22,12 +22,12 @@ For this group project, we can split it into multiple parts:
 
 **Based on my conversations with each member, here's the allocation of work:**
 
-Adebayo/Montano - 1) Data preprocessing and loading
+Adebayo/Montano - 1) Data preprocessing and loading -> Involved data augmentation and (Ismail was the only one that did this) labelling 3000 images from the unlabelled images in seg_pred/seg_pred
 
 Adebayo/Bird/Herfel - 3) Learning process
 
-Bird/Herfel/Konijn - 2) Network architecture
+Bird/Herfel/Konijn - 2) Network architecture -> Herfel and Bird did extra research on network architecture and training automation, Konijn wrote the mode and history exporter
 
-Konijn/Montano - 4) Inference
+Konijn/Montano - 4) Inference -> Konijn fixed bugs in the inference script and implemented torch.jit
 
 All of us - REPORT MAKING
