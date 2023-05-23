@@ -20,7 +20,7 @@ For this group project, we can split it into multiple parts:
 
 *NB: The people who will be doing network architecture will have to make sure that the code for the network class can be easily scaled and transformed with NO repercussions to training. We also want to train multiple models with it. We should be able to easily change our network if we wanted to and we won't have to rewrite the whole code base.*
 
-**Based on my conversations with each member, here's the initial allocation of work:**
+**Based on my conversations with each member, here's the allocation of work:**
 
 Adebayo/Montano - 1) Data preprocessing and loading
 
@@ -30,16 +30,4 @@ Bird/Herfel/Konijn - 2) Network architecture
 
 Konijn/Montano - 4) Inference
 
-All of us - REPORT MAKING (AAAAAAAAAAAAAAAAAAHHHHHHHHHHHH)
-
-The allocations above are your formal (initial) responsibilities. If you would like to change it around, please don't hesitate to tell me. These are just formalities, you can still work on something your interested in if your allocation does not happen to interest you.
-
-**We are a team, hence we will be helping anyone who needs assistance.**
-
-The framework that we will be using is PyTorch so that we can easily copy code from the labs. I don't wish the pain tensorflow has done to me even to my enemies LOL!
-
-Please make forks of main and publish your branches as pull requests. Changes are just easier to make and track with that method.
-
-Any changes/questions, please tell me.
-
-Johanne
+All of us - REPORT MAKING

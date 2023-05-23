@@ -1,15 +1,12 @@
 import csv
 import os
+import argparse
 
 import cv2
-import matplotlib.pyplot as plt
 import torch
 from tqdm import tqdm
 
-from models.cv_model import CVModel
 
-
-# Class to load image to a data loader so we can batch our inferences
 class InferenceLoader(torch.utils.data.Dataset):
     def __init__(self, imgs_path):
         # If file in directory is a .jpg add it to the list
@@ -28,22 +25,18 @@ class InferenceLoader(torch.utils.data.Dataset):
         img_path = self.master_list[idx]
         img = cv2.imread(img_path)
         # Make sure no images have the wrong shape
-        img = (
-            # can try 150, 150 also
-            cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (224, 224))
-            if img.shape != (224, 224, 3)
-            else cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        )
+        img = cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (224, 224)) / 255.0
 
         return torch.tensor(img, dtype=torch.float32).permute(2, 0, 1), img_path
 
 
-def inference(model_path, imgs_path, show=False):
-    # Load model
-    model = CVModel(num_classes=6)
-    model.load_state_dict(torch.load(model_path))
-    model.eval()
+def inference(model_path, imgs_path, out_path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Load model
+    model = torch.jit.load(model_path)
+    model.eval()
+
     model.to(device)
 
     # Load data
@@ -52,59 +45,54 @@ def inference(model_path, imgs_path, show=False):
 
     # Load known classes
     classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
-    class_map = {k: v for k, v in zip(range(len(classes)), classes)}
 
-    with open("preds.csv", "w", newline="") as f:
+    # Load output file (and create if it doesn't exist)
+    with open(out_path, "w", newline="") as f:
         writer = csv.writer(f)
-
-        if show:
-            batch_list = []
 
         # Tqdm for progress bar
         for img, img_path in tqdm(
-            inference_dataloader,
-            total=len(inference_dataloader),
-            desc="Inference",
+            inference_dataloader, total=len(inference_dataloader), desc="Inference"
         ):
-
+            # Generate full predictions
             predictions = model(img.to(device))
-            writer.writerow([img_path[0], torch.argmax(predictions).item()])
+            predictions = predictions.argmax(dim=1).item()
 
-            if show:
-                batch = {"img_name": img_path, "preds": predictions}
-                batch_list.append(batch)
-
-                if len(batch_list) == 64:
-                    # Load as images in a subplot
-                    fig, axs = plt.subplots(nrows=8, ncols=8, figsize=(10, 10))
-                    for i, batch in enumerate(batch_list):
-                        img_name = batch["img_name"]
-                        preds = batch["preds"]
-
-                        img = cv2.imread(img_name[0])
-                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-                        # Use the index to put the images into the correct subplot
-                        axs[i // 8, i % 8].imshow(img)
-                        axs[i // 8, i % 8].set_title(
-                            f"Prediction: {class_map[torch.argmax(preds).item()]}"
-                        )
-                        axs[i // 8, i % 8].axis("off")
-
-                    # Show images and reset batch list
-                    plt.show()
-                    batch_list = []
+            # Add the top prediction to the csv
+            writer.writerow([img_path[0], predictions])
 
 
 if __name__ == "__main__":
-    # NOTE The model path is expected to be in the project's root directory
-    # NOTE The image path that contains the test images is expected to be in the before project's root directory
-    # NOTE The file will be written in the project's root directory
-    model_path = f"{os.path.join(os.getcwd(), 'intel_model.pt')}"
+    # Create the argument parser
+    parser = argparse.ArgumentParser()
 
-    folder_name = "ADEIJ_datasets"
-    imgs_path = os.path.join(os.getcwd(), "..", folder_name, "seg_pred", "seg_pred")
+    # Add the commandline arguments
+    parser.add_argument(
+        "-m",
+        "--model-script",
+        type=str,
+        default="outputs/vit_20/vit_20_model_script.pt",
+        help="Specify the model script path",
+    )
+    parser.add_argument(
+        "-i",
+        "--image-folder",
+        type=str,
+        default="../ADEIJ_datasets/seg_pred/seg_pred",
+        help="Specify the image folder path",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="./preds.csv",
+        help="Specify the output CSV file name (optional)",
+    )
 
-    show = False
+    # Parse the command-line arguments
+    args = parser.parse_args()
 
-    inference(model_path=model_path, imgs_path=imgs_path, show=show)
+    # Run script with arguments
+    inference(
+        model_path=args.model_script, imgs_path=args.image_folder, out_path=args.output
+    )

@@ -1,0 +1,12 @@
+python version 3.10.8 confirmed working for the inference script
+
+If the following errors appear when running the inference script:
+aten::empty_strided
+aten::scaled_dot_product_attention
+
+please uninstall your current torch distribution and
+
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+(for pytorch 2.0.1+cu118)
+
+and try running the inference again. 
