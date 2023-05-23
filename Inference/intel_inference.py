@@ -25,7 +25,8 @@ class InferenceLoader(torch.utils.data.Dataset):
         img_path = self.master_list[idx]
         img = cv2.imread(img_path)
         # Make sure no images have the wrong shape
-        img = cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), (224, 224)) / 255.0
+        img = cv2.resize(cv2.cvtColor(
+            img, cv2.COLOR_BGR2RGB), (224, 224)) / 255.0
 
         return torch.tensor(img, dtype=torch.float32).permute(2, 0, 1), img_path
 
@@ -33,7 +34,7 @@ class InferenceLoader(torch.utils.data.Dataset):
 def inference(model_path, imgs_path, out_path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load model
+    # Load model using Torch Script
     model = torch.jit.load(model_path)
     model.eval()
 
@@ -41,10 +42,8 @@ def inference(model_path, imgs_path, out_path):
 
     # Load data
     inference_data = InferenceLoader(imgs_path)
-    inference_dataloader = torch.utils.data.DataLoader(inference_data, shuffle=False)
-
-    # Load known classes
-    classes = ["buildings", "forest", "glacier", "mountain", "sea", "street"]
+    inference_dataloader = torch.utils.data.DataLoader(
+        inference_data, shuffle=False)
 
     # Load output file (and create if it doesn't exist)
     with open(out_path, "w", newline="") as f:
@@ -71,14 +70,14 @@ if __name__ == "__main__":
         "-m",
         "--model-script",
         type=str,
-        default="outputs/vit_20/vit_20_model_script.pt",
+        default="vit_20_model_script_cuda.pt",
         help="Specify the model script path",
     )
     parser.add_argument(
         "-i",
         "--image-folder",
         type=str,
-        default="../ADEIJ_datasets/seg_pred/seg_pred",
+        default="../../ADEIJ_datasets/seg_pred/seg_pred",
         help="Specify the image folder path",
     )
     parser.add_argument(
@@ -88,11 +87,24 @@ if __name__ == "__main__":
         default="./preds.csv",
         help="Specify the output CSV file name (optional)",
     )
+    parser.add_argument(
+        "-d",
+        "--device",
+        action='store_true',
+        help='Query the device curently available to torch'
+    )
 
     # Parse the command-line arguments
     args = parser.parse_args()
 
-    # Run script with arguments
-    inference(
-        model_path=args.model_script, imgs_path=args.image_folder, out_path=args.output
-    )
+    # If device was queried, print it, otherwise run inference
+    if args.device:
+        print("cuda" if torch.cuda.is_available() else "cpu")
+
+    else:
+        # Run script with arguments
+        inference(
+            model_path=args.model_script,
+            imgs_path=args.image_folder,
+            out_path=args.output
+        )
