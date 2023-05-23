@@ -58,6 +58,10 @@ NOTES
   TorchScript will not load correctly. If you are unsure what device type you 
   have, run  `python intel_inference.py -d` to print your device to the console.
 
+  - If it isn't obvious, the correct model to use is:
+      device == 'cuda' -> use model vit_20_model_script_cuda.pt
+      device == 'cpu'  -> use model vit_20_model_script_cpu.pt
+
 - The script assumes that the images in the image folder are in JPEG format 
   (`.jpg` extension). Only files with the `.jpg` extension will be processed.
 
@@ -65,10 +69,10 @@ NOTES
   file). See: https://pytorch.org/docs/stable/jit.html
 
 
-DEVICE TYPE
+/!\ DEVICE TYPE /!\
 
 In the submission, two models were included. One is meant for Nvidia GPU's and 
-one is for CPU.
+one is for CPU. 
 
 If your system has a cuda compatible nvidia GPU, please ignore the following as 
 if you have successfully installed the correct packages and their correct 
