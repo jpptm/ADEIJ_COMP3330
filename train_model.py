@@ -1,20 +1,23 @@
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
-from intel_dataloader import IntelDataLoader
+from intel_dataloader import IntelDataLoader, IntelTestLoader
 
 from models.cv_model import CVModel
 
 from tqdm import tqdm
 
+import math
+
 # local modules
 import metrics
 import export
+import pdb
+
 
 # Add training function
-
-
 def train(model, train_loader, criterion, optimiser, device):
     # Let model know we are in training mode
     model.train()
@@ -91,24 +94,52 @@ def validate(model, val_loader, criterion, device):
     return avg_loss, acc
 
 
-def main(data_path, lr, num_epochs, batch_size, loss):
+def test(csv_path, model, device, criterion, history, epoch):
+
+    test_data = IntelTestLoader(csv_path)
+    test_loader = DataLoader(test_data, batch_size=32, shuffle=False)
+
+    truth = []
+    preds = []
+
+    # Keep track of validation loss
+    val_loss = 0
+    correct = 0
+    total = 0
+
+    # confusion_mat = confusion_matrix(truth, preds)
+    # acc = accuracy_score(truth, preds)
+
+    # precision_global = precision_score(truth, preds, average="micro")
+    # precision_mean = precision_score(truth, preds, average="macro")
+
+    # recall_global = recall_score(truth, preds, average="micro")
+    # recall_mean = recall_score(truth, preds, average="macro")
+
+    # avg_loss = val_loss / len(val_loader)
+
+    export.Export(model, device, history, test_loader)
+
+
+def main(data_path, hidden_size, name, kind, lr, max_epochs, test_every, batch_size, loss, use_learning_decay=False):
     # Set device - GPU if available, else CPU
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO]: USING {str(device).upper()} DEVICE")
+
+    # Create model and optimiser
+    model = CVModel(num_classes=6, hidden_size=hidden_size, kind=kind, name=name).to(device)
 
     # Create dataset
     train_dataset = IntelDataLoader(data_path["train"])
     val_dataset = IntelDataLoader(data_path["val"])
 
     # Create data loaders
-    train_loader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    # Create model and optimiser
-    model = CVModel(num_classes=6).to(device)
-
     optimiser = torch.optim.Adam(model.parameters(), lr=lr)
+    if use_learning_decay:
+        scheduler = CosineAnnealingLR(optimiser, T_max=max_epochs, eta_min=0)
 
     # History logging
     history = export.History()
@@ -116,10 +147,14 @@ def main(data_path, lr, num_epochs, batch_size, loss):
     val_losses, val_accs = [], []
 
     # Train model
-    for epoch in range(1, num_epochs + 1):
-        print(f"Epoch {epoch} of {num_epochs}")
-        train_loss, train_acc = train(
-            model, train_loader, loss, optimiser, device)
+    for epoch in range(1, max_epochs + 1):
+        print(f"Epoch {epoch} of {max_epochs}")
+        train_loss, train_acc = train(model, train_loader, loss, optimiser, device)
+
+        if use_learning_decay:
+            # Update learning rate according to cosine annealing
+            scheduler.step()
+
         val_loss, val_acc = validate(model, val_loader, loss, device)
 
         print(
@@ -130,10 +165,9 @@ def main(data_path, lr, num_epochs, batch_size, loss):
         # Save history
         history.append_all(train_loss, train_acc, val_loss, val_acc)
 
-    # save and export model
-    # we should really be passing the test dataloader not the validation
-    # dataloader but I'm not sure how to get that from the inference script yet
-    export.Export(model, device, "Placeholder model name", history, val_loader)
+        if epoch%test_every == 0 or epoch == max_epochs:
+            model.name = model.name + "_epochs_" + str(epoch)
+            test(data_path["test_csv"], model, device, loss, history, epoch)
 
 
 if __name__ == "__main__":
@@ -142,25 +176,41 @@ if __name__ == "__main__":
 
     # Define hyperparameters
     data_paths = {
-        # TODO: make relative
-        # "train": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_train/seg_train",
-        # "val": "C:/Users/angel/COMP3330/A2/ADEIJ_datasets/seg_test/seg_test",
-        # "train": "C:\Microsoft VS Code\ADEIJ_datasets\seg_train\seg_train",
-        # "val": "C:\Microsoft VS Code\ADEIJ_datasets\seg_test\seg_test",
         "train": "./../ADEIJ_datasets/seg_train/seg_train",
         "val": "./../ADEIJ_datasets/seg_test/seg_test",
+        "test_csv": "./../ADEIJ_datasets/seg_pred_labels.csv"
     }
-    lr = 0.001
-    num_epochs = 1
-    batch_size = 32
+
+    # epochs settings
+    max_epochs = 20
+    test_every = 2
+
+    # training settings
+    from_scratch = True
+    lr = 0.0001
+    batch_size = 64
     loss = torch.nn.CrossEntropyLoss()
+    use_learning_decay = False
+
+    # model settings
+    kind = 'vit'
+    hidden_size = 80
+    hidden_size_increment = 10
 
     input_map = {
         "data_path": data_paths,
+        "hidden_size": hidden_size,
+        "name": f"{kind}_{hidden_size}",
+        "kind": kind,
         "lr": lr,
-        "num_epochs": num_epochs,
+        "max_epochs": max_epochs,
+        "test_every": test_every,
         "batch_size": batch_size,
         "loss": loss,
+        "use_learning_decay": use_learning_decay
     }
+
+    hidden_size += hidden_size_increment
+
     # Run main function
     main(**input_map)
