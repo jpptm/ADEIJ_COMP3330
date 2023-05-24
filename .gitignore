@@ -130,3 +130,5 @@ dmypy.json
 
 # Models
 .pt
+Inference/vit_20_model_script_cpu.pt
+Inference/vit_20_model_script_cuda.pt
